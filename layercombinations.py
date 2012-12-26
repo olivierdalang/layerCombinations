@@ -34,26 +34,22 @@ class LayerCombinations:
     def __init__(self, iface):
         # Save reference to the QGIS interface
         self.iface = iface
-        # Create the dialog and keep reference
+        # Create the dock widget and keep reference
         self.dockWidget = LayerCombinationsPalette(iface)
-        # initialize plugin directory
+
         
     def initGui(self):
 
-
-
-        # Create action that will start plugin configuration
-        self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Toggle layer combinations panel", self.iface.mainWindow())
-        # connect the action to the run method
+        # Create the action that will toggle the plugin panel
+        self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Show/hide the Layer Combinations panel", self.iface.mainWindow())
         QObject.connect(self.action, SIGNAL("triggered()"), self.toggle)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu("&Layer combination", self.action)
+        self.iface.addPluginToMenu("&Layer Combinations", self.action)
 
-
+        # Add the plugin panel to the mainWindow
         self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
-
 
     def toggle(self):
         if self.dockWidget.isVisible():
@@ -61,11 +57,7 @@ class LayerCombinations:
         else:
             self.dockWidget.show()
 
-
     def unload(self):
-        # Remove the plugin menu item and icon
         self.iface.mainWindow().removeDockWidget(self.dockWidget)
-        
-        self.iface.removePluginMenu("&Layer combination",self.action)
+        self.iface.removePluginMenu("&Layer Combinations",self.action)
         self.iface.removeToolBarIcon(self.action)
-        #self.dockWidget = None

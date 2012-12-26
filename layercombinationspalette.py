@@ -28,9 +28,24 @@ from qgis.core import *
 
 
 class LayerCombinationsPalette(QDockWidget):
+    """
+    This palette manage the storage and retrieval of layer's visibilities combinations.
+
+    It stores the following settings in the project file :
+
+    KEY                     VALUE
+    combinations            serialized list of all layer combination's names (should reflect the ComboBox's content)
+    [combination's name]    serialized list of all visible layer's names (the key corresponds to the combination's name)
+
+    """
+
+    NONE_NAME = '- NONE -'
+    INVALID_NAMES = ['', NONE_NAME]
+
     def __init__(self, iface):
         QDockWidget.__init__(self, "Layer combinations")
 
+        #Keep reference of QGis' instances
         self.legend = iface.legendInterface()
         self.proj = QgsProject.instance()
 
@@ -53,49 +68,48 @@ class LayerCombinationsPalette(QDockWidget):
         self.layout.addWidget(self.saveBtn,1,1)
 
         #Connect the main UI elements
-        QObject.connect(self.saveBtn, SIGNAL("pressed()"), self.save)
-        QObject.connect(self.deleBtn, SIGNAL("pressed()"), self.delete)
-        QObject.connect(self.nameEdt, SIGNAL("textChanged(QString)"), self.textChanged)
-        QObject.connect(self.combBox, SIGNAL("currentIndexChanged(int)"), self.changed)
-        QObject.connect(self.proj, SIGNAL("readProject(QDomDocument)"), self.load)
+        QObject.connect(self.saveBtn, SIGNAL("pressed()"), self.saveCombination)
+        QObject.connect(self.deleBtn, SIGNAL("pressed()"), self.deleteCombination)
+        QObject.connect(self.nameEdt, SIGNAL("textChanged(QString)"), self.nameChanged)
+        QObject.connect(self.combBox, SIGNAL("currentIndexChanged(int)"), self.selectionChanged)
+
+        QObject.connect(self.proj, SIGNAL("readProject(QDomDocument)"), self.loadCombinationsList) #we have to reload the list when a project is opened/closed
 
         #Do the initial load of the entries
-        self.load()
+        self.loadCombinationsList()
 
-    def textChanged(self, text):
-        if text == '' or text == '- NONE -':
+
+    def nameChanged(self, name):
+        """
+        This is called when the combination's name changes.
+        It updates the buttons regarding to the new name.
+        If the name is invalid, it disables the save button.
+        If the name is valid but does not already exist, the save button is set to "Save". If it already exists, it is set to "Update"
+        """
+
+        if name in self.INVALID_NAMES:
             self.saveBtn.setEnabled(False)
         else:
             self.saveBtn.setEnabled(True)
-            if self.combBox.findText(text) == -1:
+            if self.combBox.findText(name) == -1:
                 self.saveBtn.setText('Save')
             else:
                 self.saveBtn.setText('Update')
 
-
-    def load(self):
+    def saveCombination(self):
         """
-        Loads the saved combinations in the combobox
-        """
-
-        self.combBox.clear()
-
-        data = self.getEntryAsList('combinations')
-
-        self.combBox.addItem( '- NONE -' )
-        for combination in data:
-            self.combBox.addItem( combination )
-
-
-    def save(self):
-        """
-        Saves a the combination
+        Saves the current combination.
+        If it's new, adds it to the comboBox and saves the combinations list.
         """
 
-        text = self.nameEdt.text()
-        if text == '- NONE -' or text == '':
+        #Get the name 
+        name = self.nameEdt.text()
+
+        #If the name is invalid, we don't save it
+        if name in self.INVALID_NAMES:
             return
 
+        #We compute the actuel combination by looping through all the layers, and storing all the visible layers' name
         layers = QgsMapLayerRegistry.instance().mapLayers()
         data = []
         for key in layers:
@@ -104,76 +118,119 @@ class LayerCombinationsPalette(QDockWidget):
             else:
                 pass
 
-        self.saveListAsEntry(text, data)
+        #We save that in the settings under the name of the combination
+        self.saveList(name, data)
 
 
-        search = self.combBox.findText(text)
+        #We check if the combination already exists...
+        search = self.combBox.findText(name)
 
-        if search == -1 : # The entry does not already exist...
-            self.combBox.addItem( text )
+        if search == -1 :
+            #The combination was new, so we have to add it to the combobox
+            self.combBox.addItem( name )
             self.combBox.setCurrentIndex( self.combBox.count()-1 )
 
-            data = []
-            for i in range(0,self.combBox.count()):
-                combName = str( self.combBox.itemText(i) )
-                if combName != '- NONE -':
-                    data.append( combName )
-            self.saveListAsEntry('combinations', data)
-                
-           
-            #TODO : add the entry to the combination list
-        else:   # The entry already exists...
-            #TODO : ask for confirmation (replace)
+            #And we save the combinations to the project's file
+            self.saveCombinationsList()
+        else:
+            #The combination already existed, so there's nothing to save
             self.combBox.setCurrentIndex( search )
 
-    def delete(self):
-        text = self.combBox.currentText()
-        if text == '- NONE -':
+    def deleteCombination(self):
+        """
+        Removes the current combination list and saves the list
+        """
+
+        #TODO : remove the combination itself also !
+
+        name = self.combBox.currentText()
+        if name in self.INVALID_NAMES:
+            #We don't delete invalid names
             return
 
+        #We remove the current item from the comboBox
         self.combBox.removeItem( self.combBox.currentIndex() )
-        #TODO : remove the entry to the combination list
 
-    def changed(self, int):
-        text = self.combBox.currentText()
-        self.nameEdt.setText(text)
+        #And we save the combinations to the project's file
+        self.saveCombinationsList()
 
-        if text == '- NONE -':
+    def selectionChanged(self, int):
+        """
+        When the selection changes from the comboBox, we have to update the layer's visibilities
+        """
+
+        name = self.combBox.currentText()
+        self.nameEdt.setText(name)
+
+        if name in self.INVALID_NAMES:
+            #We don't update anywhing for invalid names
             self.deleBtn.setEnabled(False)
             return
-            
+
+
         self.deleBtn.setEnabled(True)
 
-        data = self.getEntryAsList(text)
+        # We get the store layer combination, which contains actually the list of visible layers
+        visibleLayers = self.getList(name)
+
+        # We loop through all the layers in the project
         layers = QgsMapLayerRegistry.instance().mapLayers()
         for key in layers:
-            if key in data:
+            # And for each layer, we set it's visibility, depending if it was in the combination
+            if key in visibleLayers:
                 self.legend.setLayerVisible( layers[key], True )
             else:
                 self.legend.setLayerVisible( layers[key], False )
 
-
-
-    def saveListAsEntry(self, key, data):
+    def loadCombinationsList(self):
         """
+        Loads the saved combinations list from the project's file into the comboBox
+        """
+
+        #Empty the comboBox
+        self.combBox.clear()
+
+        #Get all combinations' names in a list from the settings
+        storedCombinations = self.getList('combinations')
+
+        #For each combination name, add it to the comboBox
+        self.combBox.addItem( '- NONE -' )
+        for combination in storedCombinations:
+            self.combBox.addItem( combination )
+
+    def saveCombinationsList(self):
+        """
+        Saves the combinations from the comboBox to the project's file
+        """
+
+        #Store all the combinations' names in a list
+        combinations = []
+        for i in range(0,self.combBox.count()):
+            combinationName = str( self.combBox.itemText(i) )
+            if combinationName != '- NONE -':
+                combinations.append( combinationName )
+
+        #Save that list in the project's file
+        self.saveList('combinations', combinations)
+
+    def saveList(self, key, data):
+        """
+        Commodity function.
         Saves a list as an project settings entry
         """
-        #TODO : serialize this in a cleaner way (we'll have a bug if the key contains the separator)
-        serializedData = "|".join(data)
+
+        serializedData = "|".join(data) #TODO : serialize this in a cleaner way (we'll have a bug if the key contains the separator)
         self.proj.writeEntry('LayerCombinations',key,serializedData)
-        #QgsMessageLog.logMessage('SAVE : '+key+" => "+serializedData, 'LayerCombinations')
-    def getEntryAsList(self, key):
+    def getList(self, key):
         """
+        Commodity function.
         Retrieves a project settings entry as a list
         """
+
         serializedData = str(self.proj.readEntry("LayerCombinations", key, "")[0]).strip()
-        #QgsMessageLog.logMessage('READ : '+key+" => "+serializedData, 'LayerCombinations')
         if len(serializedData) == 0:
-            #QgsMessageLog.logMessage('this is no data', 'LayerCombinations')
             return []
         else:
-            #TODO : unserialize this in a cleaner way (we'll have a bug if the key contains the separator)
-            data = serializedData.split('|')
-            #QgsMessageLog.logMessage('this is '+str(len(data)) + ' items', 'LayerCombinations')
+            data = serializedData.split('|')    #TODO : unserialize this in a cleaner way (we'll have a bug if the key contains the separator)
             return data
 
