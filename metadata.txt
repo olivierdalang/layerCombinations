@@ -24,7 +24,7 @@ email=olivier.dalang@gmail.com
 # changelog=
 
 # tags are comma separated with spaces allowed
-tags=layer,combinations,compositions
+tags=layer,legend,visibility
 
 homepage=
 tracker=

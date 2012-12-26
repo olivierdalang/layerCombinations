@@ -3,7 +3,8 @@
 
 ## Description ##
 
-QGis plugin to store/restore layer visbilities
+QGis plugin to store/restore layer visbilities.
+In the future, one will be able to apply stored layer visibilites for maps in the composer.
 
 
 ## Usage ##
