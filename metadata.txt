@@ -24,11 +24,11 @@ email=olivier.dalang@gmail.com
 # changelog=
 
 # tags are comma separated with spaces allowed
-tags=layer, combinations
+tags=layer,combinations,compositions
 
 homepage=
 tracker=
-repository=
+repository=https://github.com/redlegoreng/layerCombinations.git
 icon=icon.png
 # experimental flag
 experimental=True

@@ -26,7 +26,7 @@ from qgis.core import *
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
-from layercombinationsdialog import LayerCombinationsDialog
+from layercombinationspalette import LayerCombinationsPalette
 
 
 class LayerCombinations:
@@ -35,48 +35,37 @@ class LayerCombinations:
         # Save reference to the QGIS interface
         self.iface = iface
         # Create the dialog and keep reference
-        self.dlg = LayerCombinationsDialog()
+        self.dockWidget = LayerCombinationsPalette(iface)
         # initialize plugin directory
-        self.plugin_dir = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "/python/plugins/layercombinations"
-        # initialize locale
-        localePath = ""
-        locale = QSettings().value("locale/userLocale").toString()[0:2]
-
-        if QFileInfo(self.plugin_dir).exists():
-            localePath = self.plugin_dir + "/i18n/layercombinations_" + locale + ".qm"
-
-        if QFileInfo(localePath).exists():
-            self.translator = QTranslator()
-            self.translator.load(localePath)
-
-            if qVersion() > '4.3.3':
-                QCoreApplication.installTranslator(self.translator)
-
+        
     def initGui(self):
+
+
+
         # Create action that will start plugin configuration
-        self.action = QAction(
-            QIcon(":/plugins/layercombinations/icon.png"),
-            u"Layer Combinations", self.iface.mainWindow())
+        self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Toggle layer combinations panel", self.iface.mainWindow())
         # connect the action to the run method
-        QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+        QObject.connect(self.action, SIGNAL("triggered()"), self.toggle)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu(u"&Layer Combinations", self.action)
+        self.iface.addPluginToMenu("&Layer combination", self.action)
+
+
+        self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
+
+
+    def toggle(self):
+        if self.dockWidget.isVisible():
+            self.dockWidget.hide()
+        else:
+            self.dockWidget.show()
+
 
     def unload(self):
         # Remove the plugin menu item and icon
-        self.iface.removePluginMenu(u"&Layer Combinations", self.action)
+        self.iface.mainWindow().removeDockWidget(self.dockWidget)
+        
+        self.iface.removePluginMenu("&Layer combination",self.action)
         self.iface.removeToolBarIcon(self.action)
-
-    # run method that performs all the real work
-    def run(self):
-        # show the dialog
-        self.dlg.show()
-        # Run the dialog event loop
-        result = self.dlg.exec_()
-        # See if OK was pressed
-        if result == 1:
-            # do something useful (delete the line containing pass and
-            # substitute with your code)
-            pass
+        #self.dockWidget = None
