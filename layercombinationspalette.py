@@ -52,6 +52,8 @@ class LayerCombinationsPalette(QDockWidget):
         #Setup the DockWidget
         mainWidget = QWidget()
         self.layout = QGridLayout()
+        self.layout.setColumnStretch( 0, 10 )
+        self.layout.setRowStretch( 2, 10 )
         mainWidget.setLayout(self.layout)
         self.setWidget(mainWidget)
 
@@ -136,6 +138,9 @@ class LayerCombinationsPalette(QDockWidget):
             #The combination already existed, so there's nothing to save
             self.combBox.setCurrentIndex( search )
 
+        # The save button now is an update button
+        self.saveBtn.setText('Update')
+
     def deleteCombination(self):
         """
         Removes the current combination list and saves the list
@@ -194,7 +199,7 @@ class LayerCombinationsPalette(QDockWidget):
         storedCombinations = self.getList('combinations')
 
         #For each combination name, add it to the comboBox
-        self.combBox.addItem( '- NONE -' )
+        self.combBox.addItem( self.NONE_NAME )
         for combination in storedCombinations:
             self.combBox.addItem( combination )
 
@@ -207,7 +212,7 @@ class LayerCombinationsPalette(QDockWidget):
         combinations = []
         for i in range(0,self.combBox.count()):
             combinationName = str( self.combBox.itemText(i) )
-            if combinationName != '- NONE -':
+            if combinationName not in self.INVALID_NAMES:
                 combinations.append( combinationName )
 
         #Save that list in the project's file

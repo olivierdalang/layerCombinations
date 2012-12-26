@@ -18,7 +18,8 @@ To update a layer combination, choose it from the drop down list, make your chan
 ## Todo ##
 
 ### Short term ###
-- Study if there's a cleaner way to store the data attributes
+- Test, test, test...
+- Study if there's a cleaner way to store the data attributes, in particular regarding to the serialization method
 - Visual return to know if the layer combination is up to date or if it has been updated (disable the update button if up to date)
 
 ### Long term ###
