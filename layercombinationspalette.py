@@ -34,8 +34,8 @@ class LayerCombinationsPalette(QDockWidget):
     It stores the following settings in the project file :
 
     KEY                     VALUE
-    combinations            serialized list of all layer combination's names (should reflect the ComboBox's content)
-    [combination's name]    serialized list of all visible layer's names (the key corresponds to the combination's name)
+    CombinationsList            serialized list of all layer combination's names (should reflect the ComboBox's content)
+    Combination[combination's name]    serialized list of all visible layer's names (the key corresponds to the combination's name)
 
     """
 
@@ -105,7 +105,7 @@ class LayerCombinationsPalette(QDockWidget):
         """
 
         #Get the name 
-        name = self.nameEdt.text()
+        name = self.nameEdt.text().trimmed()
 
         #If the name is invalid, we don't save it
         if name in self.INVALID_NAMES:
@@ -116,12 +116,12 @@ class LayerCombinationsPalette(QDockWidget):
         data = []
         for key in layers:
             if self.legend.isLayerVisible( layers[key] ):
-                data.append( str(key) )
+                data.append( key )  #KEY is a QSTRING
             else:
                 pass
 
         #We save that in the settings under the name of the combination
-        self.saveList(name, data)
+        self.saveList(self.sanitizeCombinationKey(name), data)
 
 
         #We check if the combination already exists...
@@ -176,7 +176,7 @@ class LayerCombinationsPalette(QDockWidget):
         self.deleBtn.setEnabled(True)
 
         # We get the store layer combination, which contains actually the list of visible layers
-        visibleLayers = self.getList(name)
+        visibleLayers = self.getList(self.sanitizeCombinationKey(name))
 
         # We loop through all the layers in the project
         layers = QgsMapLayerRegistry.instance().mapLayers()
@@ -196,7 +196,7 @@ class LayerCombinationsPalette(QDockWidget):
         self.combBox.clear()
 
         #Get all combinations' names in a list from the settings
-        storedCombinations = self.getList('combinations')
+        storedCombinations = self.getList('CombinationsList')
 
         #For each combination name, add it to the comboBox
         self.combBox.addItem( self.NONE_NAME )
@@ -211,31 +211,55 @@ class LayerCombinationsPalette(QDockWidget):
         #Store all the combinations' names in a list
         combinations = []
         for i in range(0,self.combBox.count()):
-            combinationName = str( self.combBox.itemText(i) )
+            combinationName = self.combBox.itemText(i)
             if combinationName not in self.INVALID_NAMES:
-                combinations.append( combinationName )
+                combinations.append( combinationName ) #combinationName is a QString
 
         #Save that list in the project's file
-        self.saveList('combinations', combinations)
+        self.saveList('CombinationsList', combinations)
 
-    def saveList(self, key, data):
+    def saveList(self, key, dataList):
         """
         Commodity function.
         Saves a list as an project settings entry
         """
-
-        serializedData = "|".join(data) #TODO : serialize this in a cleaner way (we'll have a bug if the key contains the separator)
+        # dataList contains a list of QString that we have to join...
+        # This mimicks the .join() method of str, maybe there's a cleaner way to do this, but I was getting confused with QString, QByteString and python string
+        serializedData = QString()
+        first = True
+        for dataQString in dataList:
+            if not first:
+                serializedData.append( '|' )
+            serializedData.append( dataQString )
+            first = False
         self.proj.writeEntry('LayerCombinations',key,serializedData)
+
     def getList(self, key):
         """
         Commodity function.
         Retrieves a project settings entry as a list
         """
 
-        serializedData = str(self.proj.readEntry("LayerCombinations", key, "")[0]).strip()
+        serializedData = self.proj.readEntry("LayerCombinations", key, "")[0].trimmed()
         if len(serializedData) == 0:
             return []
         else:
-            data = serializedData.split('|')    #TODO : unserialize this in a cleaner way (we'll have a bug if the key contains the separator)
+            data = serializedData.split('|')
             return data
+    def sanitizeCombinationKey(self,key):
+        """
+        Commodity function.
+        The entry key are used as XML tags ! So they should have no space and no special character.
+        This can make QGis files unreadable !!
+        """
+        sanitizedKey = QString(key) #key is a QString and is passed by reference ! So we will work on a copy of it...
+        sanitizedKey.replace(QRegExp("[^a-zA-Z0-9]"),'_')
+        #BUG
+        # When there are different combinations where the name differs only by a special (non-alphanumeric) character
+        # only one combination will actually be saved.
+        # To resolve this, the sanitation method should be a bit more subtle...
+
+        return 'CMB_'+sanitizedKey
+
+
 

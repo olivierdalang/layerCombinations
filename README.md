@@ -25,5 +25,12 @@ To update a layer combination, choose it from the drop down list, make your chan
 ### Long term ###
 - In the map composer, allow to assign a layer combinations to a map
 
+## Known bugs ##
+- When there are different combinations where the name differs only by a special (non-alphanumeric) character, only one combination will actually be saved.
+
+## Version history ##
+- 2012-12-26 - version 0.1 : intial release
+- 2012-12-28 - Version 0.2 : Fixed critical bug where special characters in the combination's name could make the QGis project to become unreadable... (as I said, it is experimental... :) )
+
 ## Contribute ##
 Github repository : https://github.com/redlegoreng/layerCombinations.git
