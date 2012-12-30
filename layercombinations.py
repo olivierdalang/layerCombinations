@@ -27,6 +27,7 @@ from qgis.core import *
 import resources_rc
 # Import the code for the dialog
 from layercombinationspalette import LayerCombinationsPalette
+from layercombinationspaletteforcomposer import LayerCombinationsPaletteForComposer
 
 
 class LayerCombinations:
@@ -50,6 +51,16 @@ class LayerCombinations:
 
         # Add the plugin panel to the mainWindow
         self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
+
+
+        # Create the GUI in the map composer window when a Composer is added (also works for composers that are loaded at project opening)
+        #QObject.connect(self.iface, SIGNAL("composerAdded(QgsComposerView*)") ,self.initComposerGui)
+
+    def initComposerGui(self, qgsComposerView):
+        self.dockWidgetForComposer = LayerCombinationsPaletteForComposer()
+        qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, self.dockWidgetForComposer )
+        tb = qgsComposerView.composerWindow().addToolBar( "Test" )
+        tb.addWidget( QLabel("hehehe") )
 
     def toggle(self):
         if self.dockWidget.isVisible():
