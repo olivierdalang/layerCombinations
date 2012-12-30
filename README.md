@@ -36,6 +36,7 @@ To update a layer combination, choose it from the drop down list, make your chan
     - Rewriting of internal code
     - Saves the active combination to the file
     - Sorts the lists
+- 2012-12-31 - Version 0.4 : Layer Combinations can be assigned to Maps in the composer.
 
 ## Contribute ##
 Github repository : https://github.com/redlegoreng/layerCombinations.git

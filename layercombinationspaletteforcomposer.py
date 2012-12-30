@@ -26,7 +26,7 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-class LayerCombinationsPalette(QDockWidget):
+class LayerCombinationsPaletteForComposer(QDockWidget):
     """
     This palette is the interfae for saving and restoring layers visibilities.
 
@@ -44,31 +44,23 @@ class LayerCombinationsPalette(QDockWidget):
         mainWidget = QWidget()
         self.layout = QGridLayout()
         self.layout.setColumnStretch( 0, 10 )
-        self.layout.setRowStretch( 2, 10 )
+        self.layout.setRowStretch( 1, 10 )
         mainWidget.setLayout(self.layout)
         self.setWidget(mainWidget)
 
         #Create the main UI elements
         self.combBox = QComboBox()
-        self.nameEdt = QLineEdit("New layer combination")
-        self.saveBtn = QPushButton("Save")
-        self.deleBtn = QPushButton("Delete")
 
         #Layout the main UI elements
         self.layout.addWidget(self.combBox,0,0)
-        self.layout.addWidget(self.deleBtn,0,1)
-        self.layout.addWidget(self.nameEdt,1,0)
-        self.layout.addWidget(self.saveBtn,1,1)
 
         #Connect the main UI elements
-        QObject.connect(self.saveBtn, SIGNAL("pressed()"), self.saveCombination)
-        QObject.connect(self.deleBtn, SIGNAL("pressed()"), self.deleteCombination)
-        QObject.connect(self.nameEdt, SIGNAL("textChanged(QString)"), self.nameChanged)
-
-        QObject.connect(self.combBox, SIGNAL("currentIndexChanged(QString)"), self.nameEdt.setText)
+        #QObject.connect(self.combBox, SIGNAL("currentIndexChanged(QString)"), self.nameEdt.setText)
 
         QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.manager.applyCombination)
         QObject.connect(self.manager, SIGNAL("combinationsListChanged(QString)"), self.combinationsListChanged )
+
+        self.combinationsListChanged(self.manager.NONE_NAME)
 
 
 
@@ -82,6 +74,7 @@ class LayerCombinationsPalette(QDockWidget):
         """
         When the combinationsList has changed, we have to update the comboBox...
         """
+
         #Empty the comboBox
         self.combBox.clear()      
         #For each combination name, add it to the comboBox
@@ -95,39 +88,10 @@ class LayerCombinationsPalette(QDockWidget):
             self.combBox.setCurrentIndex( self.combBox.count()-1 )
         else:
             self.combBox.setCurrentIndex( search )
-
-    def nameChanged(self, name):
-        """
-        This is called when the combination's name changes.
-        It updates the buttons regarding to the new name.
-        If the name is invalid, it disables the save button.
-        If the name is valid but does not already exist, the save button is set to "Save". If it already exists, it is set to "Update"
-        """
-
-        if not self.manager.nameIsValid(name):
-            self.saveBtn.setText('Invalid')
-            self.saveBtn.setEnabled(False)
-        else:
-            self.saveBtn.setEnabled(True)
-            if self.manager.nameIsNew(name):
-                self.saveBtn.setText('Save')
-            else:
-                self.saveBtn.setText('Update')
-
-    def saveCombination(self):
-        """
-        Saves the current combination.
-        If it's new, adds it to the comboBox and saves the combinations list.
-        """
-        self.manager.saveCombination( self.nameEdt.text() )
-
-    def deleteCombination(self):
-        """
-        Removes the current combination list and saves the list
-        """
-        self.manager.deleteCombination( self.combBox.currentText() )
-
-
-
+            
+            
+    def selectedItemChanged(self,qgsComposerItem):
+        QgsMessageLog.logMessage('Composer : seletion :'+qgsComposerItem.__class__.__name__,'LayerCombinations')
+        pass
 
 

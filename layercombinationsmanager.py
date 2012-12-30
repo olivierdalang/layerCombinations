@@ -28,6 +28,7 @@ class LayerCombinationsManager(QObject):
 
     def __init__(self, iface):
         QObject.__init__(self)
+
         self.iface = iface
 
         # this will hold the combinations list

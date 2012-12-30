@@ -50,6 +50,9 @@ class LayerCombinations(QObject):
         # Create the dock widget and keep reference
         self.dockWidget = LayerCombinationsPalette(self.manager)
 
+        # Create the GUI in the map composer window when a Composer is added (also works for composers that are loaded at project opening)
+        QObject.connect(self.iface, SIGNAL("composerAdded(QgsComposerView*)") ,self.initComposerGui)
+
         # we have to reload the list when a project is opened/closed
         QObject.connect(self.iface, SIGNAL("projectRead()"), self.manager.loadCombinations) #we have to reload the list when a project is opened/closed
 
@@ -72,6 +75,17 @@ class LayerCombinations(QObject):
 
         # Add the plugin panel to the mainWindow
         self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)  
+
+    def initComposerGui(self, qgsComposerView):
+        """
+        Creates the GUI for the given Composer Main Window
+        """
+
+        dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager)
+        qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, dockWidgetForComposer )
+
+        QObject.connect( qgsComposerView, SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
+
 
     def unload(self):
         self.iface.mainWindow().removeDockWidget(self.dockWidget)
