@@ -71,6 +71,10 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
             self.show()
 
     def combinationsListChanged(self, name):
+        """
+        When the combinationsList has changed, we have to update the comboBox...
+        """
+
         #Empty the comboBox
         self.combBox.clear()      
         #For each combination name, add it to the comboBox
@@ -84,5 +88,10 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
             self.combBox.setCurrentIndex( self.combBox.count()-1 )
         else:
             self.combBox.setCurrentIndex( search )
+            
+            
+    def selectedItemChanged(self,qgsComposerItem):
+        QgsMessageLog.logMessage('Composer : seletion :'+qgsComposerItem.__class__.__name__,'LayerCombinations')
+        pass
 
 

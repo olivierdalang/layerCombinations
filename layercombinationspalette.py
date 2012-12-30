@@ -79,6 +79,9 @@ class LayerCombinationsPalette(QDockWidget):
             self.show()
 
     def combinationsListChanged(self, name):
+        """
+        When the combinationsList has changed, we have to update the comboBox...
+        """
         #Empty the comboBox
         self.combBox.clear()      
         #For each combination name, add it to the comboBox

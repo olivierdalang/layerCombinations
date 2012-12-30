@@ -81,10 +81,11 @@ class LayerCombinations(QObject):
         Creates the GUI for the given Composer Main Window
         """
 
-        self.dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager)
-        qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, self.dockWidgetForComposer )
-        tb = qgsComposerView.composerWindow().addToolBar( "Test" )
-        tb.addWidget( QLabel("hehehe") )
+        dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager)
+        qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, dockWidgetForComposer )
+
+        QObject.connect( qgsComposerView, SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
+
 
     def unload(self):
         self.iface.mainWindow().removeDockWidget(self.dockWidget)
