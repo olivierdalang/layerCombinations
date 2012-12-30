@@ -26,8 +26,8 @@ changelog=2012-12-27 - Version 0.2 : Fixed critical bug where special characters
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility
 
-homepage=
-tracker=
+homepage=https://github.com/redlegoreng/layerCombinations
+tracker=https://github.com/redlegoreng/layerCombinations/issues
 repository=https://github.com/redlegoreng/layerCombinations.git
 icon=icon.png
 # experimental flag
