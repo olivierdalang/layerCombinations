@@ -27,7 +27,7 @@ def name():
 
 
 def description():
-    return "Store and restore layer visibilities. Apply them to maps in the composer."
+    return "Store and restore layer visibilities."
 
 
 def version():

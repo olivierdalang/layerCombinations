@@ -11,7 +11,7 @@
 [general]
 name=Layer Combinations
 qgisMinimumVersion=1.0
-description=Store and restore layer visibilities. Apply them to maps in the composer.
+description=Store and restore layer visibilities.
 version=0.3
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
