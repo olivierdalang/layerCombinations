@@ -27,11 +27,11 @@ def name():
 
 
 def description():
-    return "Store and restore layer visibilities"
+    return "Store and restore layer visibilities. Apply them to maps in the composer."
 
 
 def version():
-    return "Version 0.2"
+    return "Version 0.3"
 
 
 def icon():

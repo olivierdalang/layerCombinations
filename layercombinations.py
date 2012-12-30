@@ -26,47 +26,65 @@ from qgis.core import *
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
+from layercombinationsmanager import LayerCombinationsManager
 from layercombinationspalette import LayerCombinationsPalette
 from layercombinationspaletteforcomposer import LayerCombinationsPaletteForComposer
 
 
-class LayerCombinations:
+class LayerCombinations(QObject):
+
+    combinationsListChanged = pyqtSignal()
+
 
     def __init__(self, iface):
+        QObject.__init__(self)
+
+        #QgsMessageLog.logMessage('Loading...','LayerCombinations')
+
         # Save reference to the QGIS interface
         self.iface = iface
+
+        # this will hold the combinations list
+        self.manager = LayerCombinationsManager(self.iface)
+
         # Create the dock widget and keep reference
-        self.dockWidget = LayerCombinationsPalette(iface)
+        self.dockWidget = LayerCombinationsPalette(self.manager)
+
+        # Create the GUI in the map composer window when a Composer is added (also works for composers that are loaded at project opening)
+        QObject.connect(self.iface, SIGNAL("composerAdded(QgsComposerView*)") ,self.initComposerGui)
+
+        # we have to reload the list when a project is opened/closed
+        QObject.connect(self.iface, SIGNAL("projectRead()"), self.manager.loadCombinations) #we have to reload the list when a project is opened/closed
+
+        #and we start by reloading the list
+        self.manager.loadCombinations()
 
         
     def initGui(self):
+        """
+        Creates the GUI for the main window
+        """
 
         # Create the action that will toggle the plugin panel
         self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Show/hide the Layer Combinations panel", self.iface.mainWindow())
-        QObject.connect(self.action, SIGNAL("triggered()"), self.toggle)
+        QObject.connect(self.action, SIGNAL("triggered()"), self.dockWidget.toggle)
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu("&Layer Combinations", self.action)
 
         # Add the plugin panel to the mainWindow
-        self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
-
-
-        # Create the GUI in the map composer window when a Composer is added (also works for composers that are loaded at project opening)
-        #QObject.connect(self.iface, SIGNAL("composerAdded(QgsComposerView*)") ,self.initComposerGui)
+        self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)  
 
     def initComposerGui(self, qgsComposerView):
-        self.dockWidgetForComposer = LayerCombinationsPaletteForComposer()
+        """
+        Creates the GUI for the given Composer Main Window
+        """
+
+        self.dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager)
         qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, self.dockWidgetForComposer )
         tb = qgsComposerView.composerWindow().addToolBar( "Test" )
         tb.addWidget( QLabel("hehehe") )
-
-    def toggle(self):
-        if self.dockWidget.isVisible():
-            self.dockWidget.hide()
-        else:
-            self.dockWidget.show()
 
     def unload(self):
         self.iface.mainWindow().removeDockWidget(self.dockWidget)

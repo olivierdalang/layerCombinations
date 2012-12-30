@@ -11,8 +11,8 @@
 [general]
 name=Layer Combinations
 qgisMinimumVersion=1.0
-description=Store and restore layer visibilities
-version=0.2
+description=Store and restore layer visibilities. Apply them to maps in the composer.
+version=0.3
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
@@ -21,10 +21,10 @@ email=olivier.dalang@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=2012-12-27 - Version 0.2 : Fixed critical bug where special characters in the combination's name could make the QGis project to become unreadable... (as I said, it is experimental... :) )
+changelog=2012-12-30 - Version 0.3 : Rewriting of internal code and saves the active combination to the file
 
 # tags are comma separated with spaces allowed
-tags=layer,legend,visibility
+tags=layer,legend,visibility,composer
 
 homepage=https://github.com/redlegoreng/layerCombinations
 tracker=https://github.com/redlegoreng/layerCombinations/issues

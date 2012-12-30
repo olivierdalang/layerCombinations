@@ -26,28 +26,19 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-
 class LayerCombinationsPalette(QDockWidget):
     """
-    This palette manage the storage and retrieval of layer's visibilities combinations.
-
-    It stores the following settings in the project file :
-
-    KEY                     VALUE
-    CombinationsList            serialized list of all layer combination's names (should reflect the ComboBox's content)
-    Combination[combination's name]    serialized list of all visible layer's names (the key corresponds to the combination's name)
+    This palette is the interfae for saving and restoring layers visibilities.
 
     """
 
-    NONE_NAME = '- NONE -'
-    INVALID_NAMES = ['', NONE_NAME]
 
-    def __init__(self, iface):
+    def __init__(self, manager):
         QDockWidget.__init__(self, "Layer combinations")
 
         #Keep reference of QGis' instances
-        self.legend = iface.legendInterface()
-        self.proj = QgsProject.instance()
+        self.manager = manager
+
 
         #Setup the DockWidget
         mainWidget = QWidget()
@@ -73,13 +64,34 @@ class LayerCombinationsPalette(QDockWidget):
         QObject.connect(self.saveBtn, SIGNAL("pressed()"), self.saveCombination)
         QObject.connect(self.deleBtn, SIGNAL("pressed()"), self.deleteCombination)
         QObject.connect(self.nameEdt, SIGNAL("textChanged(QString)"), self.nameChanged)
-        QObject.connect(self.combBox, SIGNAL("currentIndexChanged(int)"), self.selectionChanged)
 
-        QObject.connect(self.proj, SIGNAL("readProject(QDomDocument)"), self.loadCombinationsList) #we have to reload the list when a project is opened/closed
+        QObject.connect(self.combBox, SIGNAL("currentIndexChanged(QString)"), self.nameEdt.setText)
 
-        #Do the initial load of the entries
-        self.loadCombinationsList()
+        QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.manager.applyCombination)
+        QObject.connect(self.manager, SIGNAL("combinationsListChanged(QString)"), self.combinationsListChanged )
 
+
+
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+
+    def combinationsListChanged(self, name):
+        #Empty the comboBox
+        self.combBox.clear()      
+        #For each combination name, add it to the comboBox
+        self.combBox.addItem( self.manager.NONE_NAME )
+
+        for combination in self.manager.combinationsList:
+            self.combBox.addItem( combination )
+
+        search = self.combBox.findText(name)
+        if search == -1 :
+            self.combBox.setCurrentIndex( self.combBox.count()-1 )
+        else:
+            self.combBox.setCurrentIndex( search )
 
     def nameChanged(self, name):
         """
@@ -89,11 +101,12 @@ class LayerCombinationsPalette(QDockWidget):
         If the name is valid but does not already exist, the save button is set to "Save". If it already exists, it is set to "Update"
         """
 
-        if name in self.INVALID_NAMES:
+        if not self.manager.nameIsValid(name):
+            self.saveBtn.setText('Invalid')
             self.saveBtn.setEnabled(False)
         else:
             self.saveBtn.setEnabled(True)
-            if self.combBox.findText(name) == -1:
+            if self.manager.nameIsNew(name):
                 self.saveBtn.setText('Save')
             else:
                 self.saveBtn.setText('Update')
@@ -103,163 +116,15 @@ class LayerCombinationsPalette(QDockWidget):
         Saves the current combination.
         If it's new, adds it to the comboBox and saves the combinations list.
         """
-
-        #Get the name 
-        name = self.nameEdt.text().trimmed()
-
-        #If the name is invalid, we don't save it
-        if name in self.INVALID_NAMES:
-            return
-
-        #We compute the actuel combination by looping through all the layers, and storing all the visible layers' name
-        layers = QgsMapLayerRegistry.instance().mapLayers()
-        data = []
-        for key in layers:
-            if self.legend.isLayerVisible( layers[key] ):
-                data.append( key )  #KEY is a QSTRING
-            else:
-                pass
-
-        #We save that in the settings under the name of the combination
-        self.saveList(self.sanitizeCombinationKey(name), data)
-
-
-        #We check if the combination already exists...
-        search = self.combBox.findText(name)
-
-        if search == -1 :
-            #The combination was new, so we have to add it to the combobox
-            self.combBox.addItem( name )
-            self.combBox.setCurrentIndex( self.combBox.count()-1 )
-
-            #And we save the combinations to the project's file
-            self.saveCombinationsList()
-        else:
-            #The combination already existed, so there's nothing to save
-            self.combBox.setCurrentIndex( search )
-
-        # The save button now is an update button
-        self.saveBtn.setText('Update')
+        self.manager.saveCombination( self.nameEdt.text() )
 
     def deleteCombination(self):
         """
         Removes the current combination list and saves the list
         """
-
-        #TODO : remove the combination itself also !
-
-        name = self.combBox.currentText()
-        if name in self.INVALID_NAMES:
-            #We don't delete invalid names
-            return
-
-        #We remove the current item from the comboBox
-        self.combBox.removeItem( self.combBox.currentIndex() )
-
-        #And we save the combinations to the project's file
-        self.saveCombinationsList()
-
-    def selectionChanged(self, int):
-        """
-        When the selection changes from the comboBox, we have to update the layer's visibilities
-        """
-
-        name = self.combBox.currentText()
-        self.nameEdt.setText(name)
-
-        if name in self.INVALID_NAMES:
-            #We don't update anywhing for invalid names
-            self.deleBtn.setEnabled(False)
-            return
+        self.manager.deleteCombination( self.combBox.currentText() )
 
 
-        self.deleBtn.setEnabled(True)
-
-        # We get the store layer combination, which contains actually the list of visible layers
-        visibleLayers = self.getList(self.sanitizeCombinationKey(name))
-
-        # We loop through all the layers in the project
-        layers = QgsMapLayerRegistry.instance().mapLayers()
-        for key in layers:
-            # And for each layer, we set it's visibility, depending if it was in the combination
-            if key in visibleLayers:
-                self.legend.setLayerVisible( layers[key], True )
-            else:
-                self.legend.setLayerVisible( layers[key], False )
-
-    def loadCombinationsList(self):
-        """
-        Loads the saved combinations list from the project's file into the comboBox
-        """
-
-        #Empty the comboBox
-        self.combBox.clear()
-
-        #Get all combinations' names in a list from the settings
-        storedCombinations = self.getList('CombinationsList')
-
-        #For each combination name, add it to the comboBox
-        self.combBox.addItem( self.NONE_NAME )
-        for combination in storedCombinations:
-            self.combBox.addItem( combination )
-
-    def saveCombinationsList(self):
-        """
-        Saves the combinations from the comboBox to the project's file
-        """
-
-        #Store all the combinations' names in a list
-        combinations = []
-        for i in range(0,self.combBox.count()):
-            combinationName = self.combBox.itemText(i)
-            if combinationName not in self.INVALID_NAMES:
-                combinations.append( combinationName ) #combinationName is a QString
-
-        #Save that list in the project's file
-        self.saveList('CombinationsList', combinations)
-
-    def saveList(self, key, dataList):
-        """
-        Commodity function.
-        Saves a list as an project settings entry
-        """
-        # dataList contains a list of QString that we have to join...
-        # This mimicks the .join() method of str, maybe there's a cleaner way to do this, but I was getting confused with QString, QByteString and python string
-        serializedData = QString()
-        first = True
-        for dataQString in dataList:
-            if not first:
-                serializedData.append( '|' )
-            serializedData.append( dataQString )
-            first = False
-        self.proj.writeEntry('LayerCombinations',key,serializedData)
-
-    def getList(self, key):
-        """
-        Commodity function.
-        Retrieves a project settings entry as a list
-        """
-
-        serializedData = self.proj.readEntry("LayerCombinations", key, "")[0].trimmed()
-        if len(serializedData) == 0:
-            return []
-        else:
-            data = serializedData.split('|')
-            return data
-    def sanitizeCombinationKey(self,key):
-        """
-        Commodity function.
-        The entry key are used as XML tags ! So they should have no space and no special character.
-        This can make QGis files unreadable !!
-        """
-        sanitizedKey = QString(key) #key is a QString and is passed by reference ! So we will work on a copy of it...
-        sanitizedKey.replace(QRegExp("[^a-zA-Z0-9]"),'_')
-        #BUG
-        # When there are different combinations where the name differs only by a special (non-alphanumeric) character
-        # only one combination will actually be saved.
-        # To resolve this, the sanitation method should be a bit more subtle...
-
-        return 'CMB_'+sanitizedKey
 
 
 

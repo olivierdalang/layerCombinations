@@ -26,46 +26,63 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-
 class LayerCombinationsPaletteForComposer(QDockWidget):
     """
-    This palette manage the storage and retrieval of layer's visibilities combinations.
-
-    It stores the following settings in the project file :
-
-    KEY                     VALUE
-    CombinationsList            serialized list of all layer combination's names (should reflect the ComboBox's content)
-    Combination[combination's name]    serialized list of all visible layer's names (the key corresponds to the combination's name)
+    This palette is the interfae for saving and restoring layers visibilities.
 
     """
 
-    NONE_NAME = '- NONE -'
-    INVALID_NAMES = ['', NONE_NAME]
 
-    def __init__(self):
+    def __init__(self, manager):
         QDockWidget.__init__(self, "Layer combinations")
 
         #Keep reference of QGis' instances
-        #self.legend = iface.legendInterface()
-        #self.proj = QgsProject.instance()
+        self.manager = manager
+
 
         #Setup the DockWidget
         mainWidget = QWidget()
         self.layout = QGridLayout()
         self.layout.setColumnStretch( 0, 10 )
-        self.layout.setRowStretch( 2, 10 )
+        self.layout.setRowStretch( 1, 10 )
         mainWidget.setLayout(self.layout)
         self.setWidget(mainWidget)
 
         #Create the main UI elements
         self.combBox = QComboBox()
-        self.nameEdt = QLineEdit("New layer combination")
-        self.saveBtn = QPushButton("Save")
-        self.deleBtn = QPushButton("Delete")
 
         #Layout the main UI elements
         self.layout.addWidget(self.combBox,0,0)
-        self.layout.addWidget(self.deleBtn,0,1)
-        self.layout.addWidget(self.nameEdt,1,0)
-        self.layout.addWidget(self.saveBtn,1,1)
+
+        #Connect the main UI elements
+        #QObject.connect(self.combBox, SIGNAL("currentIndexChanged(QString)"), self.nameEdt.setText)
+
+        QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.manager.applyCombination)
+        QObject.connect(self.manager, SIGNAL("combinationsListChanged(QString)"), self.combinationsListChanged )
+
+        self.combinationsListChanged(self.manager.NONE_NAME)
+
+
+
+    def toggle(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
+
+    def combinationsListChanged(self, name):
+        #Empty the comboBox
+        self.combBox.clear()      
+        #For each combination name, add it to the comboBox
+        self.combBox.addItem( self.manager.NONE_NAME )
+
+        for combination in self.manager.combinationsList:
+            self.combBox.addItem( combination )
+
+        search = self.combBox.findText(name)
+        if search == -1 :
+            self.combBox.setCurrentIndex( self.combBox.count()-1 )
+        else:
+            self.combBox.setCurrentIndex( search )
+
 
