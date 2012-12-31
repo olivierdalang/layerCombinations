@@ -66,16 +66,10 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
         self.combinationsListChanged(self.manager.NONE_NAME)
 
 
-
-    def toggle(self):
-        if self.isVisible():
-            self.hide()
-        else:
-            self.show()
-
     def combinationsListChanged(self, name):
         """
-        When the combinationsList has changed, we have to update the comboBox...
+        This is called when the manager updates the combinations list.
+        We refrsh the comboBox's content...
         """
 
         previousName = self.combBox.currentText()
@@ -95,13 +89,20 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
             
             
     def selectedItemChanged(self,qgsComposerItem):
+        """
+        This is called when the selection changed in the composer.
+        Unfortunately, it is not called when the user deselects an element.
+        Basically, we enable the comboBox if the selection contains at least a ComposerMap.
+        If it contains a ComposerMap, we set the comboBox's current value tu this ComposerMap's saved layer combination (or to "no combination" if it has no layerCombination)
+        """
 
         #QgsMessageLog.logMessage('SELECTION CHANGED','LayerCombinations')
 
-
+        # By default, disable the comboBox and choose "- NONE -"
         self.combBox.setEnabled(False)
         self.combBox.setCurrentIndex( 0 )
 
+        # Loop thourgh the selected items in search of a ComposerMap Item
         selectedItems = self.composer.composition().selectedComposerItems()
         firstItem = None
         for item in selectedItems:
@@ -109,21 +110,31 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
                 firstItem = item
                 break
 
+        # If a composer map was found in the selection
         if firstItem is not None:
+
+            # Enable the comboBox
             self.combBox.setEnabled(True)
 
+            #If the first ComposerMap has a layerset
             layerSet = firstItem.layerSet()
-
             if len(layerSet) > 0:
-                markedCombinationName = self.manager._markedCombinationKey( layerSet[0] )
 
+                markedCombinationName = self.manager._markedCombinationKey( layerSet[0] )
+                # And if this layerset's first element is a combination's name instead of a normal layer
                 if markedCombinationName is not None:
+
+                    # We set the ComboBox's current item to that combination's name
                     search = self.combBox.findText(markedCombinationName)
                     if search != -1 :
                         self.combBox.setCurrentIndex( search )
 
 
     def combBoxActivated(self, name):
+        """
+        This is called when the user makes a choice in the ComboBox.
+        It applies the combination to the map.
+        """
 
         selectedItems = self.composer.composition().selectedComposerItems()
         for item in selectedItems:

@@ -19,6 +19,22 @@ class LayerCombinationsManager(QObject):
     The QString sent is the name of the added layer (if a layer was added) or the NONE_NAME if a layer was removed.
     Widgets that display the list of layer combinations should be connected to that signal.
 
+    When a combination is applied to a map, it stores the commbination's name as the map's layerset first item.
+    The combination's named is marked with a '*' so it can be recognized as being a combination name and not a layer.tion name corresponding to the updated combination, it is refreshed.
+
+    <ComposerMap keepLayerSet="true"
+        <LayerSet>
+            <Layer>*mycomb1</Layer>
+            <Layer>a20121227214219700</Layer>
+            <Layer>c20121227214219715</Layer>
+            ...
+        </LayerSet>
+    </ComposerMap>
+
+    This is not very clean and should be made in a better way if there is a better way...
+
+    When a combination is updated, the plugin iterates through all the ComposerMaps, and if it's first layer is a combina
+
     """
 
     combinationsListChanged = pyqtSignal('QString')
@@ -116,6 +132,10 @@ class LayerCombinationsManager(QObject):
                 self.iface.legendInterface().setLayerVisible( layers[key], False )
 
     def applyCombinationToMap(self, name, mapItem):
+        """
+        This applies a combination to a map.
+        It changes the layerSet to the give combination name and saves the combination's name in the MapItem's layerSet
+        """
 
         #QgsMessageLog.logMessage('Manager : applying combination to a mapItem '+name,'LayerCombinations')
 
@@ -130,18 +150,29 @@ class LayerCombinationsManager(QObject):
 
         else:
         
+            # We set the layerSet
             visibleLayers = self._loadCombination(name)
             mapItem.setLayerSet( visibleLayers )
             mapItem.setKeepLayerSet( True )
+            # We refresh the image
             mapItem.updateCachedImage()
 
+            # And we set the layerSet again, but this time with the marked combination name as first layer
             visibleLayers.prepend( self._markCombinationKey(name) )
             mapItem.setLayerSet( visibleLayers )
+
+            # It seems the updateCachedImage() function cleans the layerSet by removing inexistant layers, so we have to change the layerset after the update.
+            # But I'm not sure of this, maybe it's useless and we could do it at once...
 
         #mapItem.updateItem()
         #mapItem.updateCachedImage()
 
     def loadCombinationToMaps(self, name):
+        """
+        This loops through all maps in all composers and if the map has the given layer combinations, it updates it.
+        This is called when a layer combination is modified, so all maps are dynamically updated.
+        """
+
         composers = self.iface.activeComposers()
         for composer in composers:
             items = composer.composition().items()
@@ -203,7 +234,11 @@ class LayerCombinationsManager(QObject):
         marked.prepend('*')
         return marked
     def _markedCombinationKey(self, name):
-        if name[0] != '*':
+        """
+        Commodity function.
+        This returns the combination corresponding to the marked combination, or none if the given element is not a marked combination.
+        """
+        if len(name)==0 or name[0] != '*':
             return None 
         else:
             return name[1:]
