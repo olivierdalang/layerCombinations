@@ -217,12 +217,10 @@ class LayerCombinationsManager(QObject):
         The entry key are used as XML tags ! So they should have no space and no special character.
         This can make QGis files unreadable !!
         """
-        sanitizedKey = QString(key) #key is a QString and is passed by reference ! So we will work on a copy of it...
+        # This produces a string that can be used as XML tag name so we can use it as name for the combinations...
+        # It's not very readable when there are a lot of special characters but it's only for the project xml file
+        sanitizedKey = QString(QUrl.toPercentEncoding(key))
         sanitizedKey.replace(QRegExp("[^a-zA-Z0-9]"),'_')
-        #BUG
-        # When there are different combinations where the name differs only by a special (non-alphanumeric) character
-        # only one combination will actually be saved.
-        # To resolve this, the sanitation method should be a bit more subtle...
 
         return 'Combination-'+sanitizedKey
     def _markCombinationKey(self,key):
