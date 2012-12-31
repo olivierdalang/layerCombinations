@@ -16,6 +16,10 @@ To update a layer combination, choose it from the drop down list, make your chan
 
 Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
 
+### Example ###
+
+An example file is provided : [layerCombinationsSample.zip](https://github.com/redlegoreng/layerCombinations/blob/master/layerCombinationsSample.zip?raw=true) 
+
 
 ## Todo ##
 
