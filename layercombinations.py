@@ -101,6 +101,10 @@ class LayerCombinations(QObject):
 
         #For all the composers, remove the layer combitionations dock window !
         for compDockWidget in self.compDockWidgets:
-            compDockWidget.close()
-            compDockWidget.setParent(None)
+            # This throws
+            # RuntimeError: underlying C/C++ object has been deleted
+            # So I disable it... Not sure wheter the plugin is well unloaded... But it shouldn't matter too much....
+            #compDockWidget.close()
+            #compDockWidget.setParent(None)
+            pass
         self.compDockWidgets=[]
