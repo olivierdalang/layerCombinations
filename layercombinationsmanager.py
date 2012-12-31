@@ -68,6 +68,8 @@ class LayerCombinationsManager(QObject):
 
         self._saveCombination(name, visibleLayerList)
 
+        self.loadCombinationToMaps(name)
+
         if self.nameIsNew(name):
             self.combinationsList.append(name)
             self.combinationsList.sort()
@@ -113,6 +115,43 @@ class LayerCombinationsManager(QObject):
             else:
                 self.iface.legendInterface().setLayerVisible( layers[key], False )
 
+    def applyCombinationToMap(self, name, mapItem):
+
+        #QgsMessageLog.logMessage('Manager : applying combination to a mapItem '+name,'LayerCombinations')
+
+
+        #self._saveForMap( mapItem.id(), name )
+
+        if not self.nameIsValid(name) or self.nameIsNew(name):
+            #We don't do anything if the name is not valid or if it does not exist...
+            
+            mapItem.setKeepLayerSet( False )
+            mapItem.updateCachedImage()
+
+        else:
+        
+            visibleLayers = self._loadCombination(name)
+            mapItem.setLayerSet( visibleLayers )
+            mapItem.setKeepLayerSet( True )
+            mapItem.updateCachedImage()
+
+            visibleLayers.prepend( self._markCombinationKey(name) )
+            mapItem.setLayerSet( visibleLayers )
+
+        #mapItem.updateItem()
+        #mapItem.updateCachedImage()
+
+    def loadCombinationToMaps(self, name):
+        composers = self.iface.activeComposers()
+        for composer in composers:
+            items = composer.composition().items()
+
+            for item in items:
+                if item.type() == 65641:
+                    if len(item.layerSet()) > 0:
+                        if item.layerSet()[0] == self._markCombinationKey(name):
+                            self.applyCombinationToMap( name, item )
+
 
     
     def nameIsNew(self, name):
@@ -123,6 +162,10 @@ class LayerCombinationsManager(QObject):
 
 
     #These funtions actually do the saving and loading in the project's files
+    def _saveForMap(self, mapId, name):
+        QgsProject.instance().writeEntry('LayerCombinations','Map-'+str(mapId),name)
+    def _loadForMap(self, mapId):
+        return QgsProject.instance().readEntry('LayerCombinations','Map-'+str(mapId))[0]
     def _saveActive(self, name):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
@@ -151,6 +194,18 @@ class LayerCombinationsManager(QObject):
         # To resolve this, the sanitation method should be a bit more subtle...
 
         return 'Combination-'+sanitizedKey
-        
+    def _markCombinationKey(self,key):
+        """
+        Commodity function.
+        We use a little hack to store the layer combination in the composer's map : actually, the layerCombination is stored as a normal layer. So we have to mark it, so we can recognize it is the layer combination
+        """
+        marked = QString(key) #key is a QString and is passed by reference ! So we will work on a copy of it...
+        marked.prepend('*')
+        return marked
+    def _markedCombinationKey(self, name):
+        if name[0] != '*':
+            return None 
+        else:
+            return name[1:]
 
 

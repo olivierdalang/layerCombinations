@@ -33,11 +33,12 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
     """
 
 
-    def __init__(self, manager):
+    def __init__(self, manager, composer):
         QDockWidget.__init__(self, "Layer combinations")
 
         #Keep reference of QGis' instances
         self.manager = manager
+        self.composer = composer
 
 
         #Setup the DockWidget
@@ -55,10 +56,12 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
         self.layout.addWidget(self.combBox,0,0)
 
         #Connect the main UI elements
-        #QObject.connect(self.combBox, SIGNAL("currentIndexChanged(QString)"), self.nameEdt.setText)
-
-        QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.manager.applyCombination)
+        QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.combBoxActivated)
         QObject.connect(self.manager, SIGNAL("combinationsListChanged(QString)"), self.combinationsListChanged )
+
+
+        QObject.connect( self.composer, SIGNAL('selectedItemChanged(QgsComposerItem*)'), self.selectedItemChanged )
+        #QObject.connect( qgsComposerView.composition(), SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
 
         self.combinationsListChanged(self.manager.NONE_NAME)
 
@@ -75,6 +78,7 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
         When the combinationsList has changed, we have to update the comboBox...
         """
 
+        previousName = self.combBox.currentText()
         #Empty the comboBox
         self.combBox.clear()      
         #For each combination name, add it to the comboBox
@@ -83,15 +87,50 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
         for combination in self.manager.combinationsList:
             self.combBox.addItem( combination )
 
-        search = self.combBox.findText(name)
+        search = self.combBox.findText(previousName)
         if search == -1 :
-            self.combBox.setCurrentIndex( self.combBox.count()-1 )
+            self.combBox.setCurrentIndex( 0 )
         else:
             self.combBox.setCurrentIndex( search )
             
             
     def selectedItemChanged(self,qgsComposerItem):
-        QgsMessageLog.logMessage('Composer : seletion :'+qgsComposerItem.__class__.__name__,'LayerCombinations')
-        pass
+
+        #QgsMessageLog.logMessage('SELECTION CHANGED','LayerCombinations')
+
+
+        self.combBox.setEnabled(False)
+        self.combBox.setCurrentIndex( 0 )
+
+        selectedItems = self.composer.composition().selectedComposerItems()
+        firstItem = None
+        for item in selectedItems:
+            if item.type() ==  65641: #this is the type of ComposerMap 
+                firstItem = item
+                break
+
+        if firstItem is not None:
+            self.combBox.setEnabled(True)
+
+            layerSet = firstItem.layerSet()
+
+            if len(layerSet) > 0:
+                markedCombinationName = self.manager._markedCombinationKey( layerSet[0] )
+
+                if markedCombinationName is not None:
+                    search = self.combBox.findText(markedCombinationName)
+                    if search != -1 :
+                        self.combBox.setCurrentIndex( search )
+
+
+    def combBoxActivated(self, name):
+
+        selectedItems = self.composer.composition().selectedComposerItems()
+        for item in selectedItems:
+            if item.type() ==  65641: #this is the type of ComposerMap 
+                self.manager.applyCombinationToMap(name, item)
+
+
+
 
 

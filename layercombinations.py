@@ -33,8 +33,6 @@ from layercombinationspaletteforcomposer import LayerCombinationsPaletteForCompo
 
 class LayerCombinations(QObject):
 
-    combinationsListChanged = pyqtSignal()
-
 
     def __init__(self, iface):
         QObject.__init__(self)
@@ -49,6 +47,8 @@ class LayerCombinations(QObject):
 
         # Create the dock widget and keep reference
         self.dockWidget = LayerCombinationsPalette(self.manager)
+        # This will hold the composers dock widgets
+        self.compDockWidgets = []
 
         # Create the GUI in the map composer window when a Composer is added (also works for composers that are loaded at project opening)
         QObject.connect(self.iface, SIGNAL("composerAdded(QgsComposerView*)") ,self.initComposerGui)
@@ -58,6 +58,11 @@ class LayerCombinations(QObject):
 
         #and we start by reloading the list
         self.manager.loadCombinations()
+
+        #and by loading the GUI for already loaded composers (should be usefull only when the plugin is loaded while composers are already existing)
+        composers = self.iface.activeComposers()
+        for composer in composers:
+            self.initComposerGui(composer)
 
         
     def initGui(self):
@@ -81,13 +86,21 @@ class LayerCombinations(QObject):
         Creates the GUI for the given Composer Main Window
         """
 
-        dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager)
+        dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager, qgsComposerView)
+
+        self.compDockWidgets.append(dockWidgetForComposer)
+
         qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, dockWidgetForComposer )
 
-        QObject.connect( qgsComposerView, SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
 
 
     def unload(self):
         self.iface.mainWindow().removeDockWidget(self.dockWidget)
         self.iface.removePluginMenu("&Layer Combinations",self.action)
         self.iface.removeToolBarIcon(self.action)
+
+        #For all the composers, remove the layer combitionations dock window !
+        for compDockWidget in self.compDockWidgets:
+            compDockWidget.close()
+            compDockWidget.setParent(None)
+        self.compDockWidgets=[]
