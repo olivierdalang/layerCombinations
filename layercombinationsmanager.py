@@ -74,11 +74,12 @@ class LayerCombinationsManager(QObject):
             return
 
         #We compute the actuel combination by looping through all the layers, and storing all the visible layers' name
-        layers = QgsMapLayerRegistry.instance().mapLayers()
-        visibleLayerList = []
-        for key in layers:
-            if self.iface.legendInterface().isLayerVisible( layers[key] ):
-                visibleLayerList.append( key )  #KEY is a QSTRING
+        layers = self.iface.legendInterface().layers()
+
+        visibleLayerList = QStringList()
+        for layer in layers:
+            if self.iface.legendInterface().isLayerVisible( layer ):
+                visibleLayerList.append( layer.id() )  #id() is a QSTRING
             else:
                 pass
 
@@ -152,6 +153,7 @@ class LayerCombinationsManager(QObject):
         
             # We set the layerSet
             visibleLayers = self._loadCombination(name)
+
             mapItem.setLayerSet( visibleLayers )
             mapItem.setKeepLayerSet( True )
             # We refresh the image

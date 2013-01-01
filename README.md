@@ -15,6 +15,7 @@ To delete a layer combination, choose it from the drop down list and press "dele
 To update a layer combination, choose it from the drop down list, make your changes, and press "update"
 
 Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
+Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
 
 ### Example ###
 
