@@ -12,7 +12,7 @@
 name=Layer Combinations
 qgisMinimumVersion=1.0
 description=Store and restore layer visibilities.
-version=0.4
+version=0.5
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
@@ -21,7 +21,7 @@ email=olivier.dalang@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=2012-12-31 - Version 0.4 : Layer Combinations can be assigned to Maps in the composer. Special characters are taken into account
+changelog=2013-01-01 - Version 0.5 : the layer order is now properly taken into account
 
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility,composer

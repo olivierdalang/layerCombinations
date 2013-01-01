@@ -42,6 +42,7 @@ An example file is provided : [layerCombinationsSample.zip](https://github.com/r
 - 2012-12-31 - Version 0.4 : 
     - Layer Combinations can be assigned to Maps in the composer (!!)
     - Special characters are taken into account
+- 2013-01-01 - Version 0.5 : the layer order is now properly taken into accound
 
 ## Contribute ##
 Github repository : https://github.com/redlegoreng/layerCombinations.git
