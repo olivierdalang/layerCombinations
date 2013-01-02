@@ -17,19 +17,17 @@ To update a layer combination, choose it from the drop down list, make your chan
 Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
 Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
 
+**Disclaimer** : use at your own risk, the plugin is in developpement. In case of problem, open your QGis file in a plain text editor, and remove everything between &lt;LayerCombinations&gt; and &lt;/LayerCombinations&gt;.
+
 ### Example ###
 
 An example file is provided : [layerCombinationsSample.zip](https://github.com/redlegoreng/layerCombinations/blob/master/layerCombinationsSample.zip?raw=true) 
 
 
-## Todo ##
+## Todo and bugs ##
 
-### Short term ###
-- Test, test, test...
-- The application of layer combinations is very slow in large files, see if it's possible to make it more fluid...
-- Study if there's a cleaner way to store the layer combinations than having the combinationName as the xml tag name
-- Visual return to know if the layer combination is up to date or if it has been updated (disable the update button if up to date)
-- The way Map items' layer combinations are stored is a kind of hack... Is there a cleaner way to do this ?
+Please see the issue tracker :
+[https://github.com/redlegoreng/layerCombinations/issues](https://github.com/redlegoreng/layerCombinations/issues)
 
 
 ## Version history ##

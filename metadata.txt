@@ -10,7 +10,7 @@
 
 [general]
 name=Layer Combinations
-qgisMinimumVersion=1.0
+qgisMinimumVersion=1.8
 description=Store and restore layer visibilities.
 version=0.5
 author=Olivier Dalang
