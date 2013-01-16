@@ -21,7 +21,7 @@ email=olivier.dalang@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=2013-01-01 - Version 0.5 : added help (via the plugin menu). the layer order is now properly taken into account
+changelog=please see included readme/help
 
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility,composer
