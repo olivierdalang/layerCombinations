@@ -1,0 +1,51 @@
+<h1>LayerCombinations</h1>
+
+<p><strong>Disclaimer</strong> : use at your own risk, the plugin is in developpement. In case of problem, open your QGis file in a plain text editor, and remove everything between &lt;LayerCombinations&gt; and &lt;/LayerCombinations&gt;.</p>
+
+<h2>Description</h2>
+
+<p>QGis plugin to store/restore layer visbilities.
+These visibilities combinations can then be applied dynamically to maps items.</p>
+
+<h2>Usage</h2>
+
+<p>To save a layer combination, enter a name and press "save".
+To restore a layer combination, choose it from the drop down list.
+To delete a layer combination, choose it from the drop down list and press "delete".
+To update a layer combination, choose it from the drop down list, make your changes, and press "update"</p>
+
+<p>Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
+Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.</p>
+
+<h2>Feedback / bugs</h2>
+
+<p>Please send bugs and ideas on the issue tracker : https://github.com/redlegoreng/layerCombinations/issues</p>
+
+<p>Or send me some feedback at : olivier.dalang@gmail.com</p>
+
+<h2>Version history</h2>
+
+<ul>
+<li>2012-12-26 - version 0.1 : intial release</li>
+<li>2012-12-28 - Version 0.2 : Fixed critical bug where special characters in the combination's name could make the QGis project to become unreadable... (as I said, it is experimental... :) )</li>
+<li>2012-12-30 - Version 0.3 :
+<ul>
+<li>Rewriting of internal code</li>
+<li>Saves the active combination to the file</li>
+<li>Sorts the lists</li>
+</ul></li>
+<li>2012-12-31 - Version 0.4 : 
+<ul>
+<li>Layer Combinations can be assigned to Maps in the composer (!!)</li>
+<li>Special characters are taken into account</li>
+</ul></li>
+<li>2013-01-16 - Version 0.5 : 
+<ul>
+<li>added help (via the plugin menu)</li>
+<li>the layer order is now properly taken into account</li>
+</ul></li>
+</ul>
+
+<h2>Contribute</h2>
+
+<p>Help is welcome ! There's a serie of issues and ideas on the github repository : https://github.com/redlegoreng/layerCombinations.git</p>

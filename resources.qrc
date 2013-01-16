@@ -2,4 +2,7 @@
     <qresource prefix="/plugins/layercombinations" >
         <file>icon.png</file>
     </qresource>
+    <qresource prefix="/plugins/layercombinations" >
+        <file>about.png</file>
+    </qresource>
 </RCC>

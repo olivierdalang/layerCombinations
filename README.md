@@ -1,5 +1,6 @@
 # LayerCombinations #
 
+**Disclaimer** : use at your own risk, the plugin is in developpement. In case of problem, open your QGis file in a plain text editor, and remove everything between &lt;LayerCombinations&gt; and &lt;/LayerCombinations&gt;.
 
 ## Description ##
 
@@ -17,20 +18,16 @@ To update a layer combination, choose it from the drop down list, make your chan
 Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
 Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
 
-**Disclaimer** : use at your own risk, the plugin is in developpement. In case of problem, open your QGis file in a plain text editor, and remove everything between &lt;LayerCombinations&gt; and &lt;/LayerCombinations&gt;.
 
-### Example ###
+## Feedback / bugs ##
 
-An example file is provided : [layerCombinationsSample.zip](https://github.com/redlegoreng/layerCombinations/blob/master/layerCombinationsSample.zip?raw=true) 
+Please send bugs and ideas on the issue tracker : https://github.com/redlegoreng/layerCombinations/issues
 
-
-## Todo and bugs ##
-
-Please see the issue tracker :
-[https://github.com/redlegoreng/layerCombinations/issues](https://github.com/redlegoreng/layerCombinations/issues)
+Or send me some feedback at : olivier.dalang@gmail.com
 
 
 ## Version history ##
+
 - 2012-12-26 - version 0.1 : intial release
 - 2012-12-28 - Version 0.2 : Fixed critical bug where special characters in the combination's name could make the QGis project to become unreadable... (as I said, it is experimental... :) )
 - 2012-12-30 - Version 0.3 :
@@ -40,7 +37,11 @@ Please see the issue tracker :
 - 2012-12-31 - Version 0.4 : 
     - Layer Combinations can be assigned to Maps in the composer (!!)
     - Special characters are taken into account
-- 2013-01-01 - Version 0.5 : the layer order is now properly taken into account
+- 2013-01-16 - Version 0.5 : 
+    - added help (via the plugin menu)
+    - the layer order is now properly taken into account
+
 
 ## Contribute ##
-Github repository : https://github.com/redlegoreng/layerCombinations.git
+
+Help is welcome ! There's a serie of issues and ideas on the github repository : https://github.com/redlegoreng/layerCombinations.git

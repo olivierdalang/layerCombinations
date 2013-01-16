@@ -30,6 +30,8 @@ from layercombinationsmanager import LayerCombinationsManager
 from layercombinationspalette import LayerCombinationsPalette
 from layercombinationspaletteforcomposer import LayerCombinationsPaletteForComposer
 
+from layercombinationabout import LayerCombinationAbout
+
 
 class LayerCombinations(QObject):
 
@@ -79,7 +81,23 @@ class LayerCombinations(QObject):
         self.iface.addPluginToMenu("&Layer Combinations", self.action)
 
         # Add the plugin panel to the mainWindow
-        self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)  
+        self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
+
+        self.initHelp()
+
+
+    def initHelp(self):
+        # Help Action
+        # Create action 
+        self.helpAction = QAction( QIcon(":/plugins/layercombinations/about.png"), u"Help", self.iface.mainWindow())
+        # connect the action 
+        QObject.connect(self.helpAction, SIGNAL("triggered()"), self.showHelp)
+        # Add menu item
+        self.iface.addPluginToMenu(u"&Layer Combinations", self.helpAction)
+
+    def showHelp(self):
+        # Simply show the help window
+        self.aboutWindow = LayerCombinationAbout()  
 
     def initComposerGui(self, qgsComposerView):
         """
@@ -99,6 +117,7 @@ class LayerCombinations(QObject):
         self.iface.removePluginMenu("&Layer Combinations",self.action)
         self.iface.removeToolBarIcon(self.action)
 
+
         #For all the composers, remove the layer combitionations dock window !
         for compDockWidget in self.compDockWidgets:
             # This throws
@@ -108,3 +127,6 @@ class LayerCombinations(QObject):
             #compDockWidget.setParent(None)
             pass
         self.compDockWidgets=[]
+
+
+        self.iface.removePluginMenu(u"&Layer Combinations", self.helpAction)
