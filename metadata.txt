@@ -26,9 +26,9 @@ changelog=added help (via the plugin menu), the layer order is now properly take
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility,composer
 
-homepage=https://github.com/redlegoreng/layerCombinations
-tracker=https://github.com/redlegoreng/layerCombinations/issues
-repository=https://github.com/redlegoreng/layerCombinations.git
+homepage=https://github.com/olivierdalang/layerCombinations
+tracker=https://github.com/olivierdalang/layerCombinations/issues
+repository=https://github.com/olivierdalang/layerCombinations.git
 icon=icon.png
 # experimental flag
 experimental=True

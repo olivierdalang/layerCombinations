@@ -21,7 +21,7 @@ Note that the layer order in the map corresponds to the layer order when the com
 
 ## Feedback / bugs ##
 
-Please send bugs and ideas on the issue tracker : https://github.com/redlegoreng/layerCombinations/issues
+Please send bugs and ideas on the issue tracker : https://github.com/olivierdalang/layerCombinations/issues
 
 Or send me some feedback at : olivier.dalang@gmail.com
 
@@ -44,4 +44,4 @@ Or send me some feedback at : olivier.dalang@gmail.com
 
 ## Contribute ##
 
-Help is welcome ! There's a serie of issues and ideas on the github repository : https://github.com/redlegoreng/layerCombinations.git
+Help is welcome ! There's a serie of issues and ideas on the github repository : https://github.com/olivierdalang/layerCombinations.git
