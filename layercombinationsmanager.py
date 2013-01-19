@@ -6,35 +6,34 @@ from qgis.core import *
 
 class LayerCombinationsManager(QObject):
     """
-    This class manages the saving, the loading, the deleting and the applying of the layer combinations.
+        This class manages the saving, the loading, the deleting and the applying of the layer combinations.
 
-    It stores the following settings in the project's file :
-    - List (QStringList) : list of the combination's names
-    - Active (QString) : the name of the last active combination (will be restored on file open)
-    - Combination-{mycomb1} (QStringList): list of visible layers in the combination {mycomb1}
-    - Combination-... : 
-    - Combination-... : 
+        It stores the following settings in the project's file :
+        - List (QStringList) : list of the combination's names
+        - Active (QString) : the name of the last active combination (will be restored on file open)
+        - Combination-{mycomb1} (QStringList): list of visible layers in the combination {mycomb1}
+        - Combination-... : 
+        - Combination-... : 
 
-    It emits the combinationsListChanged(Qstring) signal whenever the combination list changed.
-    The QString sent is the name of the added layer (if a layer was added) or the NONE_NAME if a layer was removed.
-    Widgets that display the list of layer combinations should be connected to that signal.
+        It emits the combinationsListChanged(Qstring) signal whenever the combination list changed.
+        The QString sent is the name of the added layer (if a layer was added) or the NONE_NAME if a layer was removed.
+        Widgets that display the list of layer combinations should be connected to that signal.
 
-    When a combination is applied to a map, it stores the commbination's name as the map's layerset first item.
-    The combination's named is marked with a '*' so it can be recognized as being a combination name and not a layer.tion name corresponding to the updated combination, it is refreshed.
+        When a combination is applied to a map, it stores the commbination's name as the map's layerset first item.
+        The combination's named is marked with a '*' so it can be recognized as being a combination name and not a layer.tion name corresponding to the updated combination, it is refreshed.
 
-    <ComposerMap keepLayerSet="true"
-        <LayerSet>
-            <Layer>*mycomb1</Layer>
-            <Layer>a20121227214219700</Layer>
-            <Layer>c20121227214219715</Layer>
-            ...
-        </LayerSet>
-    </ComposerMap>
+        <ComposerMap keepLayerSet="true"
+            <LayerSet>
+                <Layer>*mycomb1</Layer>
+                <Layer>a20121227214219700</Layer>
+                <Layer>c20121227214219715</Layer>
+                ...
+            </LayerSet>
+        </ComposerMap>
 
-    This is not very clean and should be made in a better way if there is a better way...
+        This is not very clean and should be made in a better way if there is a better way...
 
-    When a combination is updated, the plugin iterates through all the ComposerMaps, and if it's first layer is a combina
-
+        When a combination is updated, the plugin iterates through all the ComposerMaps, and if it's first layer is a combina
     """
 
     combinationsListChanged = pyqtSignal('QString')
@@ -49,6 +48,9 @@ class LayerCombinationsManager(QObject):
 
         # this will hold the combinations list
         self.combinationsList = QStringList()
+
+        # this will hold the visible layers before a combination was applied
+        self.previousVisibleLayerList = None
 
 
     def loadCombinations(self):
@@ -76,12 +78,7 @@ class LayerCombinationsManager(QObject):
         #We compute the actuel combination by looping through all the layers, and storing all the visible layers' name
         layers = self.iface.legendInterface().layers()
 
-        visibleLayerList = QStringList()
-        for layer in layers:
-            if self.iface.legendInterface().isLayerVisible( layer ):
-                visibleLayerList.append( layer.id() )  #id() is a QSTRING
-            else:
-                pass
+        visibleLayerList = self._getVisibleLayersIds()
 
         self._saveCombination(name, visibleLayerList)
 
@@ -118,19 +115,21 @@ class LayerCombinationsManager(QObject):
         self._saveActive( name )
 
         if not self.nameIsValid(name) or self.nameIsNew(name):
+            if self.previousVisibleLayerList is not None:
+                self._applyVisibleLayersIds(self.previousVisibleLayerList)
+                self.previousVisibleLayerList = None
             #We don't do anything if the name is not valid or if it does not exist...
             return
+
+        # We store the current combination as being the previous combination
+        if self.previousVisibleLayerList is None:
+            self.previousVisibleLayerList = self._getVisibleLayersIds()
         
         visibleLayers = self._loadCombination(name)
 
         # We loop through all the layers in the project
-        layers = QgsMapLayerRegistry.instance().mapLayers()
-        for key in layers:
-            # And for each layer, we set it's visibility, depending if it was in the combination
-            if key in visibleLayers:
-                self.iface.legendInterface().setLayerVisible( layers[key], True )
-            else:
-                self.iface.legendInterface().setLayerVisible( layers[key], False )
+        self._applyVisibleLayersIds(visibleLayers)
+
 
     def applyCombinationToMap(self, name, mapItem):
         """
@@ -192,6 +191,30 @@ class LayerCombinationsManager(QObject):
     def nameIsValid(self, name):
         return name not in self.INVALID_NAMES
 
+
+
+    #Helper
+    def _getVisibleLayersIds(self):
+        visibleLayerIdsList = QStringList()
+        layers = self.iface.legendInterface().layers()
+        for layer in layers:
+            if self.iface.legendInterface().isLayerVisible( layer ):
+                visibleLayerIdsList.append( layer.id() )  #id() is a QSTRING
+            else:
+                pass
+        return visibleLayerIdsList
+    def _applyVisibleLayersIds(self, visibleLayersIds):
+        # We loop through all the layers in the project
+        layers = QgsMapLayerRegistry.instance().mapLayers()
+        for key in layers:
+            # And for each layer, we set it's visibility, depending if it was in the combination
+            if key in visibleLayersIds:
+                self.iface.legendInterface().setLayerVisible( layers[key], True )
+                #self.iface.legendInterface().setGroupExpanded( layers[key], True )
+                
+            else:
+                self.iface.legendInterface().setLayerVisible( layers[key], False )
+                #self.iface.legendInterface().setGroupExpanded( layers[key], True )
 
 
     #These funtions actually do the saving and loading in the project's files
