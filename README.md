@@ -13,7 +13,8 @@ These visibilities combinations can then be applied dynamically to maps items.
 To save a layer combination, enter a name and press "save".
 To restore a layer combination, choose it from the drop down list.
 To delete a layer combination, choose it from the drop down list and press "delete".
-To update a layer combination, choose it from the drop down list, make your changes, and press "update"
+To update a layer combination, choose it from the drop down list, make your changes, and press "update".
+To restore the previous (aka current) layer combination, select the "- NONE -" item.
 
 Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
 Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
@@ -40,6 +41,8 @@ Or send me some feedback at : olivier.dalang@gmail.com
 - 2013-01-16 - Version 0.5 : 
     - added help (via the plugin menu)
     - the layer order is now properly taken into account
+- 2013-01-19 - Version 0.6 : 
+    - "current" layer combination is stored
 
 
 ## Contribute ##
