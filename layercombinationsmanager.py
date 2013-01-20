@@ -11,9 +11,17 @@ class LayerCombinationsManager(QObject):
         It stores the following settings in the project's file :
         - List (QStringList) : list of the combination's names
         - Active (QString) : the name of the last active combination (will be restored on file open)
-        - Combination-{mycomb1} (QStringList): list of visible layers in the combination {mycomb1}
-        - Combination-... : 
-        - Combination-... : 
+        - Combination-{mycomb1} (QStringList): list of visible layers ids in the combination {mycomb1}
+        - Combination-{mycomb2}
+        - Combination-...
+
+        - LayerFolding-{mycomb1} (QStringList): list of expanded layers ids in the combination {mycomb1}
+        - LayerFolding-{mycomb2}
+        - LayerFolding-...
+
+        - GroupFolding-{mycomb1} (QStringList): list of expanded group names in the combination {mycomb1}
+        - GroupFolding-{mycomb2}
+        - GroupFolding-... : 
 
         It emits the combinationsListChanged(Qstring) signal whenever the combination list changed.
         The QString sent is the name of the added layer (if a layer was added) or the NONE_NAME if a layer was removed.
@@ -32,6 +40,7 @@ class LayerCombinationsManager(QObject):
         </ComposerMap>
 
         This is not very clean and should be made in a better way if there is a better way...
+        TODO : It seems than on some occasions, this layer list is refreshed, and the *mycomb1 element is removed (since it is not an existing layer)
 
         When a combination is updated, the plugin iterates through all the ComposerMaps, and if it's first layer is a combina
     """
@@ -79,7 +88,7 @@ class LayerCombinationsManager(QObject):
         layers = self.iface.legendInterface().layers()
 
 
-        self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedGroupsIds())
+        self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedLayersIds(), self._getExpandedGroupsIds())
 
         self.loadCombinationToMaps(name)
 
@@ -127,7 +136,8 @@ class LayerCombinationsManager(QObject):
 
         # We loop through all the layers in the project
         self._applyVisibleLayersIds(self._loadCombination(name))
-        self._applyExpandedGroupsIds(self._loadCombinationFolding(name))
+        self._applyExpandedLayersIds(self._loadCombinationLayerFolding(name))
+        self._applyExpandedGroupsIds(self._loadCombinationGroupFolding(name))
 
 
     def applyCombinationToMap(self, name, mapItem):
@@ -202,13 +212,26 @@ class LayerCombinationsManager(QObject):
             else:
                 pass
         return visibleLayerIds
+    def _getExpandedLayersIds(self):
+        expandedLayerIds = QStringList()
+        if QGis.QGIS_VERSION_INT<10900:
+            #we skip, because legendInterface().isLayerExpanded() does not exist in 1.8
+            return expandedLayerIds
+        layers = self.iface.legendInterface().layers()
+        for layer in layers:
+            if self.iface.legendInterface().isLayerExpanded( layer ):
+                expandedLayerIds.append( layer.id() )  #id() is a QSTRING
+            else:
+                pass
+        return expandedLayerIds
     def _getExpandedGroupsIds(self):
         expandedGroupsIds = QStringList()
         groups = self.iface.legendInterface().groups()
         i=0
         for group in groups:
             if self.iface.legendInterface().isGroupExpanded( i ): # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
-                expandedGroupsIds.append( QString(str(i)) )  #id() is a QSTRING
+                #expandedGroupsIds.append( QString(str(i)) )  #id() is a QSTRING
+                expandedGroupsIds.append( group )  #id() is a QSTRING
             else:
                 pass
             i+=1
@@ -220,16 +243,28 @@ class LayerCombinationsManager(QObject):
             # And for each layer, we set it's visibility, depending if it was in the combination
             if key in visibleLayersIds:
                 self.iface.legendInterface().setLayerVisible( layers[key], True )
-                self.iface.legendInterface().setLayerExpanded( layers[key], True )
-                
             else:
                 self.iface.legendInterface().setLayerVisible( layers[key], False )
+    def _applyExpandedLayersIds(self, expandedLayersIds):
+        if QGis.QGIS_VERSION_INT<10900:
+            #we skip, because legendInterface().setLayerExpanded() does not exist in 1.8
+            return
+
+        # We loop through all the layers in the project
+        layers = QgsMapLayerRegistry.instance().mapLayers()
+        for key in layers:
+            # And for each layer, we set it's visibility, depending if it was in the combination
+            if key in expandedLayersIds:
+                self.iface.legendInterface().setLayerExpanded( layers[key], True )
+            else:
                 self.iface.legendInterface().setLayerExpanded( layers[key], False )
     def _applyExpandedGroupsIds(self, expandedGroupsIds):
+        
         groups = self.iface.legendInterface().groups()
         i=0
         for group in groups:
-            if expandedGroupsIds.indexOf(QString(str(i))) > -1:
+            #if expandedGroupsIds.indexOf(QString(str(i))) > -1:
+            if expandedGroupsIds.indexOf(group) > -1:
                 self.iface.legendInterface().setGroupExpanded( i, True ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
             else:
                 self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
@@ -248,15 +283,19 @@ class LayerCombinationsManager(QObject):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
-    def _saveCombination(self, name, visibleLayerList, foldedGroupsList):
+    def _saveCombination(self, name, visibleLayerList, folderLayerList, foldedGroupsList):
         QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeCombinationKey(name),visibleLayerList)
+        QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeLayerFoldingKey(name),folderLayerList)
         QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name),foldedGroupsList)
     def _deleteCombination(self,name):
         QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeCombinationKey(name))
+        QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeLayerFoldingKey(name))
         QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name))
     def _loadCombination(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeCombinationKey(name))[0]
-    def _loadCombinationFolding(self, name):
+    def _loadCombinationLayerFolding(self, name):
+        return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeLayerFoldingKey(name))[0]
+    def _loadCombinationGroupFolding(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name))[0]
     def _saveCombinations(self):
         QgsProject.instance().writeEntry('LayerCombinations','List',self.combinationsList)
@@ -269,6 +308,13 @@ class LayerCombinationsManager(QObject):
         This can make QGis files unreadable !!
         """
         return 'Combination-'+self._sanitizeKey(key)
+    def _sanitizeLayerFoldingKey(self,key):
+        """
+        Commodity function.
+        The entry key are used as XML tags ! So they should have no space and no special character.
+        This can make QGis files unreadable !!
+        """
+        return 'LayerFolding-'+self._sanitizeKey(key)
     def _sanitizeGroupFoldingKey(self,key):
         """
         Commodity function.

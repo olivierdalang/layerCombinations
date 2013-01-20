@@ -19,6 +19,8 @@ To restore the previous (aka current) layer combination, select the "- NONE -" i
 Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
 Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
 
+When you add new groups/layers, they are considered to be hidden and folded by existing combinations.
+
 
 ## Feedback / bugs ##
 
@@ -41,7 +43,9 @@ Or send me some feedback at : olivier.dalang@gmail.com
 - 2013-01-16 - Version 0.5 : 
     - added help (via the plugin menu)
     - the layer order is now properly taken into account
-- 2013-01-19 - Version 0.6 : 
+- 2013-01-20 - Version 0.6 : 
+    - group folding is stored also (does not work for subgroups in 1.8)
+    - layer folding is stored also (does not work at all in 1.8)
     - "current" layer combination is stored
 
 
