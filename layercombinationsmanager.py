@@ -75,12 +75,11 @@ class LayerCombinationsManager(QObject):
         if not self.nameIsValid(name):
             return
 
-        #We compute the actuel combination by looping through all the layers, and storing all the visible layers' name
+        #We compute the actual combination by looping through all the layers, and storing all the visible layers' name
         layers = self.iface.legendInterface().layers()
 
-        visibleLayerList = self._getVisibleLayersIds()
 
-        self._saveCombination(name, visibleLayerList)
+        self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedGroupsIds())
 
         self.loadCombinationToMaps(name)
 
@@ -125,10 +124,10 @@ class LayerCombinationsManager(QObject):
         if self.previousVisibleLayerList is None:
             self.previousVisibleLayerList = self._getVisibleLayersIds()
         
-        visibleLayers = self._loadCombination(name)
 
         # We loop through all the layers in the project
-        self._applyVisibleLayersIds(visibleLayers)
+        self._applyVisibleLayersIds(self._loadCombination(name))
+        self._applyExpandedGroupsIds(self._loadCombinationFolding(name))
 
 
     def applyCombinationToMap(self, name, mapItem):
@@ -195,14 +194,25 @@ class LayerCombinationsManager(QObject):
 
     #Helper
     def _getVisibleLayersIds(self):
-        visibleLayerIdsList = QStringList()
+        visibleLayerIds = QStringList()
         layers = self.iface.legendInterface().layers()
         for layer in layers:
             if self.iface.legendInterface().isLayerVisible( layer ):
-                visibleLayerIdsList.append( layer.id() )  #id() is a QSTRING
+                visibleLayerIds.append( layer.id() )  #id() is a QSTRING
             else:
                 pass
-        return visibleLayerIdsList
+        return visibleLayerIds
+    def _getExpandedGroupsIds(self):
+        expandedGroupsIds = QStringList()
+        groups = self.iface.legendInterface().groups()
+        i=0
+        for group in groups:
+            if self.iface.legendInterface().isGroupExpanded( i ): # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
+                expandedGroupsIds.append( QString(str(i)) )  #id() is a QSTRING
+            else:
+                pass
+            i+=1
+        return expandedGroupsIds
     def _applyVisibleLayersIds(self, visibleLayersIds):
         # We loop through all the layers in the project
         layers = QgsMapLayerRegistry.instance().mapLayers()
@@ -210,11 +220,23 @@ class LayerCombinationsManager(QObject):
             # And for each layer, we set it's visibility, depending if it was in the combination
             if key in visibleLayersIds:
                 self.iface.legendInterface().setLayerVisible( layers[key], True )
-                #self.iface.legendInterface().setGroupExpanded( layers[key], True )
+                self.iface.legendInterface().setLayerExpanded( layers[key], True )
                 
             else:
                 self.iface.legendInterface().setLayerVisible( layers[key], False )
-                #self.iface.legendInterface().setGroupExpanded( layers[key], True )
+                self.iface.legendInterface().setLayerExpanded( layers[key], False )
+    def _applyExpandedGroupsIds(self, expandedGroupsIds):
+        groups = self.iface.legendInterface().groups()
+        i=0
+        for group in groups:
+            if expandedGroupsIds.indexOf(QString(str(i))) > -1:
+                self.iface.legendInterface().setGroupExpanded( i, True ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
+            else:
+                self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
+            i+=1
+
+    
+
 
 
     #These funtions actually do the saving and loading in the project's files
@@ -226,12 +248,16 @@ class LayerCombinationsManager(QObject):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
-    def _saveCombination(self, name, visibleLayerList):
+    def _saveCombination(self, name, visibleLayerList, foldedGroupsList):
         QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeCombinationKey(name),visibleLayerList)
+        QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name),foldedGroupsList)
     def _deleteCombination(self,name):
         QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeCombinationKey(name))
+        QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name))
     def _loadCombination(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeCombinationKey(name))[0]
+    def _loadCombinationFolding(self, name):
+        return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name))[0]
     def _saveCombinations(self):
         QgsProject.instance().writeEntry('LayerCombinations','List',self.combinationsList)
     def _loadCombinations(self):
@@ -242,12 +268,20 @@ class LayerCombinationsManager(QObject):
         The entry key are used as XML tags ! So they should have no space and no special character.
         This can make QGis files unreadable !!
         """
+        return 'Combination-'+self._sanitizeKey(key)
+    def _sanitizeGroupFoldingKey(self,key):
+        """
+        Commodity function.
+        The entry key are used as XML tags ! So they should have no space and no special character.
+        This can make QGis files unreadable !!
+        """
+        return 'GroupFolding-'+self._sanitizeKey(key)
+    def _sanitizeKey(self, key):
         # This produces a string that can be used as XML tag name so we can use it as name for the combinations...
         # It's not very readable when there are a lot of special characters but it's only for the project xml file
         sanitizedKey = QString(QUrl.toPercentEncoding(key))
         sanitizedKey.replace(QRegExp("[^a-zA-Z0-9]"),'_')
-
-        return 'Combination-'+sanitizedKey
+        return sanitizedKey
     def _markCombinationKey(self,key):
         """
         Commodity function.
