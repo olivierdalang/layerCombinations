@@ -95,7 +95,6 @@ class LayerCombinationsManager(QObject):
         Deletes the combination and changes the combinationsList (removing the combination)
         """
 
-        #QgsMessageLog.logMessage('Manager : deleting combination '+name,'LayerCombinations')
 
         self._deleteCombination(name)
 
