@@ -12,7 +12,7 @@
 name=Layer Combinations
 qgisMinimumVersion=1.8
 description=Store and restore layer visibilities.
-version=0.5
+version=0.6
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
@@ -21,7 +21,7 @@ email=olivier.dalang@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=added help (via the plugin menu), the layer order is now properly taken into account
+changelog=group folding is stored also (works only partially in 1.8), layer folding is stored also (works only in 1.9), "current" layer combination is stored
 
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility,composer
