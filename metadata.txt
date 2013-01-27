@@ -21,7 +21,7 @@ email=olivier.dalang@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=group folding is stored also (works only for the root level under 1.8), layer folding is stored also (works only on the dev version), "current" layer combination is stored
+changelog=group folding is stored also (works only partially in 1.8), layer folding is stored also (works only in 1.9), "current" layer combination is stored
 
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility,composer
