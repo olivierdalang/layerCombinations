@@ -94,7 +94,7 @@ class LcMain(QObject):
 
     def showHelp(self):
         # Simply show the help window
-        self.aboutWindow = LayerCombinationAbout()  
+        self.aboutWindow = LcAbout()  
 
     def initComposerGui(self, qgsComposerView):
         """
