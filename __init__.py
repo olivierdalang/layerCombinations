@@ -27,11 +27,11 @@ def name():
 
 
 def description():
-    return "Store and restore layer visibilities, and apply them to Maps in the composer."
+    return "Store and restore layer visibilities in 'combinations' which can then be applied to composer maps."
 
 
 def version():
-    return "Version 0.6"
+    return "Version 0.7"
 
 
 def icon():
@@ -39,7 +39,7 @@ def icon():
 
 
 def qgisMinimumVersion():
-    return "1.0"
+    return "1.9"
 
 def author():
     return "Olivier Dalang"

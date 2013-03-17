@@ -69,7 +69,6 @@ class LcManager(QObject):
 
         self.applyCombination( self._loadActive() ) 
         self.combinationsListChanged.emit( self._loadActive() )
-
     def saveCombination(self, name, saveFolding = True):
         """
         Saves the all the visible layers in the combination, and if the combination is new, changes the combinations list
@@ -94,7 +93,6 @@ class LcManager(QObject):
             self.combinationsList.append(name)
             self.combinationsList.sort()
             self.combinationsListChanged.emit(name)
-
     def deleteCombination(self, name):
         """
         Deletes the combination and changes the combinationsList (removing the combination)
@@ -108,7 +106,6 @@ class LcManager(QObject):
             self.combinationsList.removeAt(index)
             self._saveCombinations()
             self.combinationsListChanged.emit(self.NONE_NAME)
-
     def applyCombination(self, name, withFolding = True):
         """
         Applies a combination by setting the layers to visible if they are in the selected layer combination and hiding it if absent from the layer combination
@@ -163,7 +160,6 @@ class LcManager(QObject):
         mapItem.updateCachedImage()
         mapItem.itemChanged.emit()
         #mapItem.updateCachedImage()
-
     def loadCombinationToMaps(self, name):
         """
         This loops through all maps in all composers and if the map has the given layer combinations, it updates it.
@@ -180,15 +176,11 @@ class LcManager(QObject):
                     assignedComposition = self._loadForMap( item )
                     if assignedComposition is not None:
                         self.applyCombinationToMap( assignedComposition, item )
-
-
     
     def nameIsNew(self, name):
         return name not in self.combinationsList
     def nameIsValid(self, name):
         return name not in self.INVALID_NAMES
-
-
 
     #Helper
     def _getVisibleLayersIds(self):
@@ -258,10 +250,6 @@ class LcManager(QObject):
                 self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
             i+=1
 
-    
-
-
-
     #These funtions actually do the saving and loading in the project's files
     def _deleteForMap(self, mapId):
         QgsProject.instance().removeEntry('LayerCombinations','Assignations/'+mapId.uuid())
@@ -295,22 +283,5 @@ class LcManager(QObject):
             combName = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+combEntry+'/Name')[0]
             combinationsNames.append( combName )
         return combinationsNames
-    def _markCombinationKey(self,key):
-        """
-        Commodity function.
-        We use a little hack to store the layer combination in the composer's map : actually, the layerCombination is stored as a normal layer. So we have to mark it, so we can recognize it is the layer combination
-        """
-        marked = QString(key) #key is a QString and is passed by reference ! So we will work on a copy of it...
-        marked.prepend('*')
-        return marked
-    def _markedCombinationKey(self, name):
-        """
-        Commodity function.
-        This returns the combination corresponding to the marked combination, or none if the given element is not a marked combination.
-        """
-        if len(name)==0 or name[0] != '*':
-            return None 
-        else:
-            return name[1:]
 
 

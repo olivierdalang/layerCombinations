@@ -47,6 +47,11 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - group folding is stored also (does not work for subgroups in 1.8)
     - layer folding is stored also (does not work at all in 1.8)
     - "current" layer combination is stored
+- 2013-03-17 - Version 0.7 : 
+    - storage format improved (using the new composer's UUID), applying compositions to maps should be more robust
+    - /!\ compatibility is broken with 0.6. A python script is provided to partialy translate old files.
+    - added "use folding" checkbox to temporarily disable the folding feature
+
 
 
 ## Contribute ##
