@@ -4,45 +4,39 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 
-class LayerCombinationsManager(QObject):
+class LcManager(QObject):
     """
+                    <VisibleLayers type="QStringList">
+                        <value>A20130316224139550</value>
+                        <value>B20130316224214241</value>
+                        <value>C20130316224244007</value>
+                    </VisibleLayers>
+                    <ExpandedGroups type="QStringList"/>
+                    <ExpandedLayers type="QStringList">
+                        <value>A20130316224139550</value>
+                    </ExpandedLayers>
+                    <Name type="QString">6876</Name>
         This class manages the saving, the loading, the deleting and the applying of the layer combinations.
 
         It stores the following settings in the project's file :
-        - List (QStringList) : list of the combination's names
         - Active (QString) : the name of the last active combination (will be restored on file open)
-        - Combination-{mycomb1} (QStringList): list of visible layers ids in the combination {mycomb1}
-        - Combination-{mycomb2}
-        - Combination-...
-
-        - LayerFolding-{mycomb1} (QStringList): list of expanded layers ids in the combination {mycomb1}
-        - LayerFolding-{mycomb2}
-        - LayerFolding-...
-
-        - GroupFolding-{mycomb1} (QStringList): list of expanded group names in the combination {mycomb1}
-        - GroupFolding-{mycomb2}
-        - GroupFolding-... : 
+        - <Combinations>
+        -   <{combination_name}>
+        -       <VisibleLayers> (QStringList): list of visible layers ids in the combination {combination_name}
+        -       <ExpandedGroups> (QStringList): list of expanded layers ids in the combination {combination_name}
+        -       <ExpandedLayers> (QStringList): list of expanded groups ids in the combination {combination_name}
+        -   </{combination_name}>
+        -   ...
+        - </Combinations>
+        - <Assignations>
+        -   <{mapItemUUID}> (QString): the name of the assigned combination
+        - </Assignations>
 
         It emits the combinationsListChanged(Qstring) signal whenever the combination list changed.
         The QString sent is the name of the added layer (if a layer was added) or the NONE_NAME if a layer was removed.
         Widgets that display the list of layer combinations should be connected to that signal.
 
-        When a combination is applied to a map, it stores the commbination's name as the map's layerset first item.
-        The combination's named is marked with a '*' so it can be recognized as being a combination name and not a layer.tion name corresponding to the updated combination, it is refreshed.
-
-        <ComposerMap keepLayerSet="true"
-            <LayerSet>
-                <Layer>*mycomb1</Layer>
-                <Layer>a20121227214219700</Layer>
-                <Layer>c20121227214219715</Layer>
-                ...
-            </LayerSet>
-        </ComposerMap>
-
-        This is not very clean and should be made in a better way if there is a better way...
-        TODO : It seems than on some occasions, this layer list is refreshed, and the *mycomb1 element is removed (since it is not an existing layer)
-
-        When a combination is updated, the plugin iterates through all the ComposerMaps, and if it's first layer is a combina
+        When a combination is updated, the plugin iterates through all the ComposerMaps, and if it has an assigned combination, it updates it.
     """
 
     combinationsListChanged = pyqtSignal('QString')
@@ -71,10 +65,12 @@ class LayerCombinationsManager(QObject):
 
         self.combinationsList = self._loadCombinations()
 
+        self.combinationsList.sort()
+
         self.applyCombination( self._loadActive() ) 
         self.combinationsListChanged.emit( self._loadActive() )
 
-    def saveCombination(self, name):
+    def saveCombination(self, name, saveFolding = True):
         """
         Saves the all the visible layers in the combination, and if the combination is new, changes the combinations list
         """
@@ -87,15 +83,16 @@ class LayerCombinationsManager(QObject):
         #We compute the actual combination by looping through all the layers, and storing all the visible layers' name
         layers = self.iface.legendInterface().layers()
 
-
-        self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedLayersIds(), self._getExpandedGroupsIds())
+        if saveFolding:
+            self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedLayersIds(), self._getExpandedGroupsIds())
+        else:
+            self._saveCombination(name, self._getVisibleLayersIds())
 
         self.loadCombinationToMaps(name)
 
         if self.nameIsNew(name):
             self.combinationsList.append(name)
             self.combinationsList.sort()
-            self._saveCombinations()
             self.combinationsListChanged.emit(name)
 
     def deleteCombination(self, name):
@@ -112,7 +109,7 @@ class LayerCombinationsManager(QObject):
             self._saveCombinations()
             self.combinationsListChanged.emit(self.NONE_NAME)
 
-    def applyCombination(self, name):
+    def applyCombination(self, name, withFolding = True):
         """
         Applies a combination by setting the layers to visible if they are in the selected layer combination and hiding it if absent from the layer combination
         """
@@ -135,8 +132,9 @@ class LayerCombinationsManager(QObject):
 
         # We loop through all the layers in the project
         self._applyVisibleLayersIds(self._loadCombination(name))
-        self._applyExpandedLayersIds(self._loadCombinationLayerFolding(name))
-        self._applyExpandedGroupsIds(self._loadCombinationGroupFolding(name))
+        if withFolding:
+            self._applyExpandedLayersIds(self._loadCombinationLayerFolding(name))
+            self._applyExpandedGroupsIds(self._loadCombinationGroupFolding(name))
 
 
     def applyCombinationToMap(self, name, mapItem):
@@ -148,32 +146,22 @@ class LayerCombinationsManager(QObject):
         #QgsMessageLog.logMessage('Manager : applying combination to a mapItem '+name,'LayerCombinations')
 
 
-        #self._saveForMap( mapItem.id(), name )
-
         if not self.nameIsValid(name) or self.nameIsNew(name):
-            #We don't do anything if the name is not valid or if it does not exist...
-            
             mapItem.setKeepLayerSet( False )
-            mapItem.updateCachedImage()
-
-        else:
-        
+            self._deleteForMap( mapItem )
+        else:        
             # We set the layerSet
             visibleLayers = self._loadCombination(name)
 
             mapItem.setLayerSet( visibleLayers )
             mapItem.setKeepLayerSet( True )
-            # We refresh the image
-            mapItem.updateCachedImage()
 
-            # And we set the layerSet again, but this time with the marked combination name as first layer
-            visibleLayers.prepend( self._markCombinationKey(name) )
-            mapItem.setLayerSet( visibleLayers )
 
-            # It seems the updateCachedImage() function cleans the layerSet by removing inexistant layers, so we have to change the layerset after the update.
-            # But I'm not sure of this, maybe it's useless and we could do it at once...
+            self._saveForMap( mapItem, name )
 
-        #mapItem.updateItem()
+        # We refresh the image
+        mapItem.updateCachedImage()
+        mapItem.itemChanged.emit()
         #mapItem.updateCachedImage()
 
     def loadCombinationToMaps(self, name):
@@ -188,9 +176,10 @@ class LayerCombinationsManager(QObject):
 
             for item in items:
                 if item.type() == 65641:
-                    if len(item.layerSet()) > 0:
-                        if item.layerSet()[0] == self._markCombinationKey(name):
-                            self.applyCombinationToMap( name, item )
+
+                    assignedComposition = self._loadForMap( item )
+                    if assignedComposition is not None:
+                        self.applyCombinationToMap( assignedComposition, item )
 
 
     
@@ -274,59 +263,38 @@ class LayerCombinationsManager(QObject):
 
 
     #These funtions actually do the saving and loading in the project's files
+    def _deleteForMap(self, mapId):
+        QgsProject.instance().removeEntry('LayerCombinations','Assignations/'+mapId.uuid())
     def _saveForMap(self, mapId, name):
-        QgsProject.instance().writeEntry('LayerCombinations','Map-'+str(mapId),name)
+        QgsProject.instance().writeEntry('LayerCombinations','Assignations/'+mapId.uuid(),name)
     def _loadForMap(self, mapId):
-        return QgsProject.instance().readEntry('LayerCombinations','Map-'+str(mapId))[0]
+        return QgsProject.instance().readEntry('LayerCombinations','Assignations/'+mapId.uuid())[0]
     def _saveActive(self, name):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
-    def _saveCombination(self, name, visibleLayerList, folderLayerList, foldedGroupsList):
-        QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeCombinationKey(name),visibleLayerList)
-        QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeLayerFoldingKey(name),folderLayerList)
-        QgsProject.instance().writeEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name),foldedGroupsList)
+    def _saveCombination(self, name, visibleLayerList, folderLayerList=None, foldedGroupsList=None):
+        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/Name',name)
+        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/VisibleLayers',visibleLayerList)
+        if folderLayerList is not None:
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/ExpandedLayers',folderLayerList)
+        if foldedGroupsList is not None:
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/ExpandedGroups',foldedGroupsList)
     def _deleteCombination(self,name):
-        QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeCombinationKey(name))
-        QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeLayerFoldingKey(name))
-        QgsProject.instance().removeEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name))
+        QgsProject.instance().removeEntry('LayerCombinations','Combinations/'+name)
     def _loadCombination(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeCombinationKey(name))[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+name+'/VisibleLayers')[0]
     def _loadCombinationLayerFolding(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeLayerFoldingKey(name))[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+name+'/ExpandedLayers')[0]
     def _loadCombinationGroupFolding(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations',self._sanitizeGroupFoldingKey(name))[0]
-    def _saveCombinations(self):
-        QgsProject.instance().writeEntry('LayerCombinations','List',self.combinationsList)
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+name+'/ExpandedGroups')[0]
     def _loadCombinations(self):
-        return QgsProject.instance().readListEntry('LayerCombinations','List')[0]
-    def _sanitizeCombinationKey(self,key):
-        """
-        Commodity function.
-        The entry key are used as XML tags ! So they should have no space and no special character.
-        This can make QGis files unreadable !!
-        """
-        return 'Combination-'+self._sanitizeKey(key)
-    def _sanitizeLayerFoldingKey(self,key):
-        """
-        Commodity function.
-        The entry key are used as XML tags ! So they should have no space and no special character.
-        This can make QGis files unreadable !!
-        """
-        return 'LayerFolding-'+self._sanitizeKey(key)
-    def _sanitizeGroupFoldingKey(self,key):
-        """
-        Commodity function.
-        The entry key are used as XML tags ! So they should have no space and no special character.
-        This can make QGis files unreadable !!
-        """
-        return 'GroupFolding-'+self._sanitizeKey(key)
-    def _sanitizeKey(self, key):
-        # This produces a string that can be used as XML tag name so we can use it as name for the combinations...
-        # It's not very readable when there are a lot of special characters but it's only for the project xml file
-        sanitizedKey = QString(QUrl.toPercentEncoding(key))
-        sanitizedKey.replace(QRegExp("[^a-zA-Z0-9]"),'_')
-        return sanitizedKey
+        combinationsNames = []
+        combEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations')
+        for combEntry in combEntries:
+            combName = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+combEntry+'/Name')[0]
+            combinationsNames.append( combName )
+        return combinationsNames
     def _markCombinationKey(self,key):
         """
         Commodity function.

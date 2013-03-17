@@ -49,5 +49,5 @@ def email():
 
 def classFactory(iface):
     # load LayerCombinations class from file LayerCombinations
-    from layercombinations import LayerCombinations
-    return LayerCombinations(iface)
+    from LcMain import LcMain
+    return LcMain(iface)

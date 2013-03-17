@@ -26,7 +26,7 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-class LayerCombinationsPalette(QDockWidget):
+class LcPalette(QDockWidget):
     """
     This palette is the interfae for saving and restoring layers visibilities.
 
@@ -43,8 +43,8 @@ class LayerCombinationsPalette(QDockWidget):
         #Setup the DockWidget
         mainWidget = QWidget()
         self.layout = QGridLayout()
-        self.layout.setColumnStretch( 0, 10 )
-        self.layout.setRowStretch( 2, 10 )
+        self.layout.setColumnStretch( 0, 1 )
+        self.layout.setRowStretch( 3, 1 )
         mainWidget.setLayout(self.layout)
         self.setWidget(mainWidget)
 
@@ -53,12 +53,15 @@ class LayerCombinationsPalette(QDockWidget):
         self.nameEdt = QLineEdit("New layer combination")
         self.saveBtn = QPushButton("Save")
         self.deleBtn = QPushButton("Delete")
+        self.foldChk = QCheckBox("Apply folding")
+        self.foldChk.setChecked( True )
 
         #Layout the main UI elements
         self.layout.addWidget(self.combBox,0,0)
         self.layout.addWidget(self.deleBtn,0,1)
         self.layout.addWidget(self.nameEdt,1,0)
         self.layout.addWidget(self.saveBtn,1,1)
+        self.layout.addWidget(self.foldChk,2,0,1,2)
 
         #Connect the main UI elements
         QObject.connect(self.saveBtn, SIGNAL("pressed()"), self.saveCombination)
@@ -77,6 +80,10 @@ class LayerCombinationsPalette(QDockWidget):
             self.hide()
         else:
             self.show()
+
+    def comboBoxActivated(self, name):
+        self.manager.applyCombination( name, self.foldChk.isChecked() )
+
 
     def combinationsListChanged(self, name):
         """
@@ -119,7 +126,7 @@ class LayerCombinationsPalette(QDockWidget):
         Saves the current combination.
         If it's new, adds it to the comboBox and saves the combinations list.
         """
-        self.manager.saveCombination( self.nameEdt.text() )
+        self.manager.saveCombination( self.nameEdt.text(), self.foldChk.isChecked() )
 
     def deleteCombination(self):
         """

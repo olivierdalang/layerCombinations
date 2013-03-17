@@ -26,7 +26,7 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-class LayerCombinationsPaletteForComposer(QDockWidget):
+class LcCompPalette(QDockWidget):
     """
     This palette is the interfae for saving and restoring layers visibilities.
 
@@ -116,18 +116,14 @@ class LayerCombinationsPaletteForComposer(QDockWidget):
             # Enable the comboBox
             self.combBox.setEnabled(True)
 
-            #If the first ComposerMap has a layerset
-            layerSet = firstItem.layerSet()
-            if len(layerSet) > 0:
+            assignedCombination = self.manager._loadForMap( firstItem )
+            if assignedCombination is not None:
 
-                markedCombinationName = self.manager._markedCombinationKey( layerSet[0] )
-                # And if this layerset's first element is a combination's name instead of a normal layer
-                if markedCombinationName is not None:
+                # We set the ComboBox's current item to that combination's name
+                search = self.combBox.findText( assignedCombination )
+                if search != -1 :
+                    self.combBox.setCurrentIndex( search )
 
-                    # We set the ComboBox's current item to that combination's name
-                    search = self.combBox.findText(markedCombinationName)
-                    if search != -1 :
-                        self.combBox.setCurrentIndex( search )
 
 
     def combBoxActivated(self, name):

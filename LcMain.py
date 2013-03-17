@@ -26,29 +26,26 @@ from qgis.core import *
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
-from layercombinationsmanager import LayerCombinationsManager
-from layercombinationspalette import LayerCombinationsPalette
-from layercombinationspaletteforcomposer import LayerCombinationsPaletteForComposer
+from LcManager import LcManager
+from LcCompPalette import LcCompPalette
+from LcPalette import LcPalette
+from LcAbout import LcAbout
 
-from layercombinationabout import LayerCombinationAbout
 
-
-class LayerCombinations(QObject):
+class LcMain(QObject):
 
 
     def __init__(self, iface):
         QObject.__init__(self)
 
-        #QgsMessageLog.logMessage('Loading...','LayerCombinations')
-
         # Save reference to the QGIS interface
         self.iface = iface
 
         # this will hold the combinations list
-        self.manager = LayerCombinationsManager(self.iface)
+        self.manager = LcManager(self.iface)
 
         # Create the dock widget and keep reference
-        self.dockWidget = LayerCombinationsPalette(self.manager)
+        self.dockWidget = LcPalette(self.manager)
         # This will hold the composers dock widgets
         self.compDockWidgets = []
 
@@ -104,7 +101,7 @@ class LayerCombinations(QObject):
         Creates the GUI for the given Composer Main Window
         """
 
-        dockWidgetForComposer = LayerCombinationsPaletteForComposer(self.manager, qgsComposerView)
+        dockWidgetForComposer = LcCompPalette(self.manager, qgsComposerView)
 
         self.compDockWidgets.append(dockWidgetForComposer)
 

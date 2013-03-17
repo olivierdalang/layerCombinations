@@ -24,7 +24,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 
-class LayerCombinationAbout(QDialog):
+class LcAbout(QDialog):
 
     def __init__(self):
         QDialog.__init__(self)
