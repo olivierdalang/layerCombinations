@@ -4,7 +4,7 @@
 
 ## Description ##
 
-QGis plugin to store/restore layer visbilities.
+LayerCombinations is a QGis plugin to store/restore layer visbilities and folding.
 These visibilities combinations can then be applied dynamically to maps items.
 
 
@@ -16,10 +16,12 @@ To delete a layer combination, choose it from the drop down list and press "dele
 To update a layer combination, choose it from the drop down list, make your changes, and press "update".
 To restore the previous (aka current) layer combination, select the "- NONE -" item.
 
-Once there are at least one combination, you can select a map in the composer and assign a combination to it. When the combination is updated, the map is also dynamically updated.
+Once there is at least one combination, you can select a map in the composer and assign a combination to it using the new docking pane at the bottom-right. When the combination is updated, the map is also dynamically updated.
 Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
 
 When you add new groups/layers, they are considered to be hidden and folded by existing combinations.
+
+If you want to avoid folding to be saved and applied, uncheck the "apply folding" checkbox.
 
 
 ## Feedback / bugs ##
@@ -37,19 +39,19 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - Rewriting of internal code
     - Saves the active combination to the file
     - Sorts the lists
-- 2012-12-31 - Version 0.4 : 
+- 2012-12-31 - Version 0.4 :
     - Layer Combinations can be assigned to Maps in the composer (!!)
     - Special characters are taken into account
-- 2013-01-16 - Version 0.5 : 
+- 2013-01-16 - Version 0.5 :
     - added help (via the plugin menu)
     - the layer order is now properly taken into account
-- 2013-01-20 - Version 0.6 : 
+- 2013-01-20 - Version 0.6 :
     - group folding is stored also (does not work for subgroups in 1.8)
     - layer folding is stored also (does not work at all in 1.8)
     - "current" layer combination is stored
-- 2013-03-17 - Version 0.7 : 
+- 2013-04-18 - Version 0.7 :
     - storage format improved (using the new composer's UUID), applying compositions to maps should be more robust
-    - /!\ compatibility is broken with 0.6. A python script is provided to partialy translate old files.
+    - /!\ compatibility is broken with 0.6. A python script is provided to partialy translate old files (almost untested).
     - added "use folding" checkbox to temporarily disable the folding feature
 
 

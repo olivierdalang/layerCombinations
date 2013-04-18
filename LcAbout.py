@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
- LiveStats
+ LcAbout
                                  A QGIS plugin
- Display live statistics about vector selections
-                              -------------------
-        begin                : 2012-12-30
+ Store and restore layer visibilities
+                             -------------------
+        begin                : 2012-12-26
         copyright            : (C) 2012 by Olivier Dalang
         email                : olivier.dalang@gmail.com
  ***************************************************************************/
@@ -34,7 +34,7 @@ class LcAbout(QDialog):
 
         self.helpFile = QFileInfo(QgsApplication.qgisUserDbFilePath()).path() + "python/plugins/layerCombinations/README.html"
         
-        self.setWindowTitle('LiveStats')
+        self.setWindowTitle('LayerCombinations')
 
         txt = QTextBrowser()
         txt.setReadOnly(True)
