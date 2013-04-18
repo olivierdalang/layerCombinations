@@ -98,14 +98,10 @@ class LcManager(QObject):
         Deletes the combination and changes the combinationsList (removing the combination)
         """
 
-
         self._deleteCombination(name)
+        self.combinationsList.remove(name)
+        self.combinationsListChanged.emit(self.NONE_NAME)
 
-        index = self.combinationsList.indexOf(name)
-        if index != -1:
-            self.combinationsList.removeAt(index)
-            self._saveCombinations()
-            self.combinationsListChanged.emit(self.NONE_NAME)
     def applyCombination(self, name, withFolding = True):
         """
         Applies a combination by setting the layers to visible if they are in the selected layer combination and hiding it if absent from the layer combination
