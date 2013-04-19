@@ -6,6 +6,7 @@
 
 This util converts the combinations from version 0.6 to 0.7 (only the combinations are converted, not their application on maps).
 Names with strange characters won't display well...
+This is almost untested, and I do not recommend using it with much hope of success...
 
 """
 
@@ -66,7 +67,7 @@ for name in combinations:
 
     inputNode = combinations[name]
 
-    combiNode = dom.createElement(name)
+    combiNode = dom.createElement( 'Combination-'+str( QString(inputName).__hash__() ) )
     combisNode.appendChild( combiNode )
 
     nameNode = dom.createElement('Name')
