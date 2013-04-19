@@ -258,20 +258,20 @@ class LcManager(QObject):
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
     def _saveCombination(self, name, visibleLayerList, folderLayerList=None, foldedGroupsList=None):
-        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/Name',name)
-        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/VisibleLayers',visibleLayerList)
+        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/Name',name)
+        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/VisibleLayers',visibleLayerList)
         if folderLayerList is not None:
-            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/ExpandedLayers',folderLayerList)
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedLayers',folderLayerList)
         if foldedGroupsList is not None:
-            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+name+'/ExpandedGroups',foldedGroupsList)
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedGroups',foldedGroupsList)
     def _deleteCombination(self,name):
-        QgsProject.instance().removeEntry('LayerCombinations','Combinations/'+name)
+        QgsProject.instance().removeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name))
     def _loadCombination(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+name+'/VisibleLayers')[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/VisibleLayers')[0]
     def _loadCombinationLayerFolding(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+name+'/ExpandedLayers')[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedLayers')[0]
     def _loadCombinationGroupFolding(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+name+'/ExpandedGroups')[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedGroups')[0]
     def _loadCombinations(self):
         combinationsNames = []
         combEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations')
@@ -279,5 +279,8 @@ class LcManager(QObject):
             combName = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+combEntry+'/Name')[0]
             combinationsNames.append( combName )
         return combinationsNames
+
+    def _makeCombinationNameToken(self, inputName):
+        return 'Combination-'+str( inputName.__hash__() )
 
 
