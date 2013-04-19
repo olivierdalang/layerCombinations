@@ -109,6 +109,9 @@ class LcManager(QObject):
 
         #QgsMessageLog.logMessage('Manager : applying combination '+name,'LayerCombinations')
 
+        #Don't repaint the map canvas at each layer visibility change
+        self.iface.mapCanvas().freeze()
+
         self._saveActive( name )
 
         if not self.nameIsValid(name) or self.nameIsNew(name):
@@ -129,6 +132,10 @@ class LcManager(QObject):
             self._applyExpandedLayersIds(self._loadCombinationLayerFolding(name))
             self._applyExpandedGroupsIds(self._loadCombinationGroupFolding(name))
 
+        #But repaint the canvas once at the end.
+        self.iface.mapCanvas().freeze( False )
+        self.iface.mapCanvas().setDirty( True )
+        self.iface.mapCanvas().refresh()
 
     def applyCombinationToMap(self, name, mapItem):
         """
