@@ -53,6 +53,7 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - storage format improved (using the new composer's UUID), applying compositions to maps should be more robust
     - /!\ compatibility is broken with 0.6. A python script is provided to partialy translate old files (almost untested).
     - added "use folding" checkbox to temporarily disable the folding feature
+    - several bug fixes
 
 
 
