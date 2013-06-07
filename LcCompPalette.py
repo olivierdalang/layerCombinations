@@ -112,7 +112,6 @@ class LcCompPalette(QDockWidget):
 
         # If a composer map was found in the selection
         if firstItem is not None:
-
             # Enable the comboBox
             self.combBox.setEnabled(True)
 
@@ -123,6 +122,9 @@ class LcCompPalette(QDockWidget):
                 search = self.combBox.findText( assignedCombination )
                 if search != -1 :
                     self.combBox.setCurrentIndex( search )
+        else:
+            # Disable the comboBox
+            self.combBox.setEnabled(False)
 
 
 

@@ -67,8 +67,10 @@ class LcManager(QObject):
 
         self.combinationsList.sort()
 
-        self.applyCombination( self._loadActive() ) 
+        #Actually, it's better not to apply the default combination, since it can cause a project to open in a different state than how it was when it was closed...
+        #self.applyCombination( self._loadActive() ) 
         self.combinationsListChanged.emit( self._loadActive() )
+
     def saveCombination(self, name, saveFolding = True):
         """
         Saves the all the visible layers in the combination, and if the combination is new, changes the combinations list
@@ -176,9 +178,10 @@ class LcManager(QObject):
             for item in items:
                 if item.type() == 65641:
 
-                    assignedComposition = self._loadForMap( item )
-                    if assignedComposition is not None:
-                        self.applyCombinationToMap( assignedComposition, item )
+                    assignedComposition = self._assignedCombForMap( item )
+                    if assignedComposition == name:
+                        #If the composition assigned to that map is the same we are loading...                    
+                        self.applyCombinationToMap( assignedComposition, item )     
     
     def nameIsNew(self, name):
         return name not in self.combinationsList
@@ -255,30 +258,30 @@ class LcManager(QObject):
 
     #These funtions actually do the saving and loading in the project's files
     def _deleteForMap(self, mapId):
-        QgsProject.instance().removeEntry('LayerCombinations','Assignations/'+mapId.uuid())
+        QgsProject.instance().removeEntry('LayerCombinations','Assignations/'+self._uuidToken(mapId.uuid()))
     def _saveForMap(self, mapId, name):
-        QgsProject.instance().writeEntry('LayerCombinations','Assignations/'+mapId.uuid(),name)
-    def _loadForMap(self, mapId):
-        return QgsProject.instance().readEntry('LayerCombinations','Assignations/'+mapId.uuid())[0]
+        QgsProject.instance().writeEntry('LayerCombinations','Assignations/'+self._uuidToken(mapId.uuid()),name)
+    def _assignedCombForMap(self, mapId):
+        return QgsProject.instance().readEntry('LayerCombinations','Assignations/'+self._uuidToken(mapId.uuid()))[0]
     def _saveActive(self, name):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
     def _saveCombination(self, name, visibleLayerList, folderLayerList=None, foldedGroupsList=None):
-        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/Name',name)
-        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/VisibleLayers',visibleLayerList)
+        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Name',name)
+        QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/VisibleLayers',visibleLayerList)
         if folderLayerList is not None:
-            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedLayers',folderLayerList)
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers',folderLayerList)
         if foldedGroupsList is not None:
-            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedGroups',foldedGroupsList)
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups',foldedGroupsList)
     def _deleteCombination(self,name):
-        QgsProject.instance().removeEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name))
+        QgsProject.instance().removeEntry('LayerCombinations','Combinations/'+self._nameToken(name))
     def _loadCombination(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/VisibleLayers')[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/VisibleLayers')[0]
     def _loadCombinationLayerFolding(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedLayers')[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers')[0]
     def _loadCombinationGroupFolding(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._makeCombinationNameToken(name)+'/ExpandedGroups')[0]
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups')[0]
     def _loadCombinations(self):
         combinationsNames = []
         combEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations')
@@ -287,7 +290,11 @@ class LcManager(QObject):
             combinationsNames.append( combName )
         return combinationsNames
 
-    def _makeCombinationNameToken(self, inputName):
+    def _nameToken(self, inputName):
+        #We make tokens because those strings are used as XML tags. Using a hash, we have no risk of invalid XML nor duplicate tokens.
         return 'Combination-'+str( inputName.__hash__() )
+    def _uuidToken(self, inputAssignation):
+        #We have to remove the {} from the uuid so it can be stored as XML tag.
+        return 'Assignation-'+inputAssignation[1:-1]
 
 
