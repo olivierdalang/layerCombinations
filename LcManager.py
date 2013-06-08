@@ -119,13 +119,19 @@ class LcManager(QObject):
         if not self.nameIsValid(name) or self.nameIsNew(name):
             if self.previousVisibleLayerList is not None:
                 self._applyVisibleLayersIds(self.previousVisibleLayerList)
+                self._applyExpandedLayersIds(self.previousExpandedLayersList)
+                self._applyExpandedGroupsIds(self.previousExpandedGroupsList)
                 self.previousVisibleLayerList = None
+                self.previousExpandedLayersList = None
+                self.previousExpandedGroupsList = None
             #We don't do anything if the name is not valid or if it does not exist...
             return
 
         # We store the current combination as being the previous combination
         if self.previousVisibleLayerList is None:
             self.previousVisibleLayerList = self._getVisibleLayersIds()
+            self.previousExpandedLayersList = self._getExpandedLayersIds()
+            self.previousExpandedGroupsList = self._getExpandedGroupsIds()
         
 
         # We loop through all the layers in the project

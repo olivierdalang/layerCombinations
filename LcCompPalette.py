@@ -115,7 +115,7 @@ class LcCompPalette(QDockWidget):
             # Enable the comboBox
             self.combBox.setEnabled(True)
 
-            assignedCombination = self.manager._loadForMap( firstItem )
+            assignedCombination = self.manager._assignedCombForMap( firstItem )
             if assignedCombination is not None:
 
                 # We set the ComboBox's current item to that combination's name
