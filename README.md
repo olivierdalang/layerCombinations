@@ -26,7 +26,7 @@ If you want to avoid folding to be saved and applied, uncheck the "apply folding
 
 ## Feedback / bugs ##
 
-Please send bugs and ideas on the issue tracker : https://github.com/olivierdalang/layerCombinations/issues
+Please report bugs and ideas on the issue tracker : https://github.com/olivierdalang/layerCombinations/issues
 
 Or send me some feedback at : olivier.dalang@gmail.com
 
@@ -51,9 +51,14 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - "current" layer combination is stored
 - 2013-04-18 - Version 0.7 :
     - storage format improved (using the new composer's UUID), applying compositions to maps should be more robust
-    - /!\ compatibility is broken with 0.6. A python script is provided to partialy translate old files (almost untested).
+    - /!\ compatibility is broken with 0.6. A python script is provided to partialy translate old files (almost untested)
     - added "use folding" checkbox to temporarily disable the folding feature
     - several bug fixes
+- 2013-06-08 - Version 0.8 :
+    - adapted to Python API V2
+    - corrected a bug where combination's application where lost upon reloading the project
+    - "- NONE -" combination now also stores folding
+    - /!\ compatibility is broken with 0.7.
 
 
 

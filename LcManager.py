@@ -7,6 +7,8 @@ import hashlib
 
 class LcManager(QObject):
     """
+        THIS MAY BE OBSOLETE ?
+
                     <VisibleLayers type="QStringList">
                         <value>A20130316224139550</value>
                         <value>B20130316224214241</value>
