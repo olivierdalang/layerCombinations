@@ -3,6 +3,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
+import hashlib
 
 class LcManager(QObject):
     """
@@ -50,7 +51,7 @@ class LcManager(QObject):
         self.iface = iface
 
         # this will hold the combinations list
-        self.combinationsList = QStringList()
+        self.combinationsList = []
 
         # this will hold the visible layers before a combination was applied
         self.previousVisibleLayerList = None
@@ -196,7 +197,7 @@ class LcManager(QObject):
 
     #Helper
     def _getVisibleLayersIds(self):
-        visibleLayerIds = QStringList()
+        visibleLayerIds = []
         layers = self.iface.legendInterface().layers()
         for layer in layers:
             if self.iface.legendInterface().isLayerVisible( layer ):
@@ -205,7 +206,7 @@ class LcManager(QObject):
                 pass
         return visibleLayerIds
     def _getExpandedLayersIds(self):
-        expandedLayerIds = QStringList()
+        expandedLayerIds = []
         if QGis.QGIS_VERSION_INT<10900:
             #we skip, because legendInterface().isLayerExpanded() does not exist in 1.8
             return expandedLayerIds
@@ -217,7 +218,7 @@ class LcManager(QObject):
                 pass
         return expandedLayerIds
     def _getExpandedGroupsIds(self):
-        expandedGroupsIds = QStringList()
+        expandedGroupsIds = []
         groups = self.iface.legendInterface().groups()
         i=0
         for group in groups:
@@ -298,7 +299,7 @@ class LcManager(QObject):
 
     def _nameToken(self, inputName):
         #We make tokens because those strings are used as XML tags. Using a hash, we have no risk of invalid XML nor duplicate tokens.
-        return 'Combination-'+str( inputName.__hash__() )
+        return 'Combination-'+hashlib.md5(inputName.encode('UTF-8')).hexdigest()
     def _uuidToken(self, inputAssignation):
         #We have to remove the {} from the uuid so it can be stored as XML tag.
         return 'Assignation-'+inputAssignation[1:-1]
