@@ -259,9 +259,10 @@ class LcManager(QObject):
         i=0
         for group in groups:
             #if expandedGroupsIds.indexOf(QString(str(i))) > -1:
-            if expandedGroupsIds.indexOf(group) > -1:
+            try:
+                expandedGroupsIds.index(group)
                 self.iface.legendInterface().setGroupExpanded( i, True ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
-            else:
+            except ValueError:
                 self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
             i+=1
 
