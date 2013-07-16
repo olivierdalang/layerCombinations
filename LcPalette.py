@@ -107,15 +107,17 @@ class LcPalette(QDockWidget):
         """
         This is called when the combination's name changes.
         It updates the buttons regarding to the new name.
-        If the name is invalid, it disables the save button.
+        If the name is invalid, it disables the save and the delete button.
         If the name is valid but does not already exist, the save button is set to "Save". If it already exists, it is set to "Update"
         """
 
         if not self.manager.nameIsValid(name):
             self.saveBtn.setText('Invalid')
             self.saveBtn.setEnabled(False)
+            self.deleBtn.setEnabled(False)
         else:
             self.saveBtn.setEnabled(True)
+            self.deleBtn.setEnabled(True)
             if self.manager.nameIsNew(name):
                 self.saveBtn.setText('Save')
             else:
