@@ -44,7 +44,7 @@ class LcManager(QObject):
 
     combinationsListChanged = pyqtSignal('QString')
 
-    NONE_NAME = '- NONE -'
+    NONE_NAME = '[NONE]'
     INVALID_NAMES = ['', NONE_NAME]
 
     def __init__(self, iface):
@@ -107,6 +107,20 @@ class LcManager(QObject):
         self.combinationsList.remove(name)
         self.combinationsListChanged.emit(self.NONE_NAME)
 
+#    def userChangedVisibility(self):
+#        """
+#        TODO : 
+#        -When the users changes visibility and/or folding manually, we keep that in the "- NONE -" combination.
+#        -We also enable/disable the "update" button depending if the current visibilties/folding matches or not the selected combination.
+#        See Workaround below
+#        """
+#        # We store the current combination as being the previous combination
+#        self.previousVisibleLayerList = self._getVisibleLayersIds()
+#        self.previousExpandedLayersList = self._getExpandedLayersIds()
+#        self.previousExpandedGroupsList = self._getExpandedGroupsIds()
+#        
+#        #TODO  : We also enable/disable the "update" button depending if the current visibilties/folding matches or not the selected combination.
+
     def applyCombination(self, name, withFolding = True):
         """
         Applies a combination by setting the layers to visible if they are in the selected layer combination and hiding it if absent from the layer combination
@@ -114,28 +128,37 @@ class LcManager(QObject):
 
         #QgsMessageLog.logMessage('Manager : applying combination '+name,'LayerCombinations')
 
-        #Don't repaint the map canvas at each layer visibility change
-        self.iface.mapCanvas().freeze()
-
         self._saveActive( name )
 
-        if not self.nameIsValid(name) or self.nameIsNew(name):
+        if not self.nameIsValid(name):
+            #We apply the NONE combination if the name is not valid...
             if self.previousVisibleLayerList is not None:
                 self._applyVisibleLayersIds(self.previousVisibleLayerList)
                 self._applyExpandedLayersIds(self.previousExpandedLayersList)
                 self._applyExpandedGroupsIds(self.previousExpandedGroupsList)
-                self.previousVisibleLayerList = None
-                self.previousExpandedLayersList = None
-                self.previousExpandedGroupsList = None
-            #We don't do anything if the name is not valid or if it does not exist...
+
+                #Workaround : we don't have a signal for userChangedVisibility/Folding
+                self.previousVisibleLayerList = None 
+                #/Workaround
+            #And that's it
             return
 
-        # We store the current combination as being the previous combination
+        if self.nameIsNew(name):
+            #We don't do anything if it's a new combination
+            return
+
+        #Workaround : we don't have a signal for userChangedVisibility/Folding
+        #So we store the NONE combination whenever a valid combination is choosen.
+        #This does not work perfectly, since it won't take into accounts modificaiton to the visibility when a combination is selected.
         if self.previousVisibleLayerList is None:
             self.previousVisibleLayerList = self._getVisibleLayersIds()
             self.previousExpandedLayersList = self._getExpandedLayersIds()
             self.previousExpandedGroupsList = self._getExpandedGroupsIds()
-        
+        #/Workaround
+
+
+        #Don't repaint the map canvas at each layer visibility change
+        self.iface.mapCanvas().freeze()        
 
         # We loop through all the layers in the project
         self._applyVisibleLayersIds(self._loadCombination(name))
