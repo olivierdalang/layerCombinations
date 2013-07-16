@@ -59,6 +59,7 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - corrected a bug where combination's application where lost upon reloading the project
     - "- NONE -" combination now also stores folding
     - /!\ compatibility is broken with 0.7.
+    - /!\ now only works with QGIS 2.0 and higher
 
 
 

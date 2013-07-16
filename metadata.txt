@@ -10,7 +10,7 @@
 
 [general]
 name=Layer Combinations
-qgisMinimumVersion=1.9
+qgisMinimumVersion=2.0
 description=Store and restore layer visibilities in "combinations" which can then be applied to composer maps.
 version=0.8
 author=Olivier Dalang
@@ -21,7 +21,7 @@ email=olivier.dalang@gmail.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog=- Adapted to Python API V2, corrected a bug where combination's application where lost upon reloading the project, "- NONE -" combination now also stores folding, /!\ compatibility is broken with 0.7
+changelog=- Adapted to Python API V2, corrected a bug where combination's application where lost upon reloading the project, "- NONE -" combination now also stores folding, /!\ compatibility is broken with 0.7, /!\ now only works with QGIS 2.0 and higher
 
 # tags are comma separated with spaces allowed
 tags=layer,legend,visibility,composer,productivity
