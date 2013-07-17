@@ -64,14 +64,14 @@ class LcPalette(QDockWidget):
         self.layout.addWidget(self.foldChk,2,0,1,2)
 
         #Connect the main UI elements
-        QObject.connect(self.saveBtn, SIGNAL("pressed()"), self.saveCombination)
-        QObject.connect(self.deleBtn, SIGNAL("pressed()"), self.deleteCombination)
-        QObject.connect(self.nameEdt, SIGNAL("textChanged(QString)"), self.nameChanged)
+        self.saveBtn.pressed.connect(self.saveCombination)
+        self.deleBtn.pressed.connect(self.deleteCombination)
+        self.nameEdt.textChanged[str].connect(self.nameChanged)
 
-        QObject.connect(self.combBox, SIGNAL("currentIndexChanged(QString)"), self.nameEdt.setText)
+        self.combBox.currentIndexChanged[str].connect(self.nameEdt.setText)
 
-        QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.manager.applyCombination)
-        QObject.connect(self.manager, SIGNAL("combinationsListChanged(QString)"), self.combinationsListChanged )
+        self.combBox.activated[str].connect(self.manager.applyCombination)
+        self.manager.combinationsListChanged[str].connect(self.combinationsListChanged)
 
 
 

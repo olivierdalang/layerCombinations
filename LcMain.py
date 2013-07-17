@@ -50,10 +50,10 @@ class LcMain(QObject):
         self.compDockWidgets = []
 
         # Create the GUI in the map composer window when a Composer is added (also works for composers that are loaded at project opening)
-        QObject.connect(self.iface, SIGNAL("composerAdded(QgsComposerView*)") ,self.initComposerGui)
+        self.iface.composerAdded.connect( self.initComposerGui )
 
         # we have to reload the list when a project is opened/closed
-        QObject.connect(self.iface, SIGNAL("projectRead()"), self.manager.loadCombinations) #we have to reload the list when a project is opened/closed
+        self.iface.projectRead.connect( self.manager.loadCombinations ) #we have to reload the list when a project is opened/closed
 
         #and we start by reloading the list
         self.manager.loadCombinations()
@@ -71,7 +71,7 @@ class LcMain(QObject):
 
         # Create the action that will toggle the plugin panel
         self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Show/hide the Layer Combinations panel", self.iface.mainWindow())
-        QObject.connect(self.action, SIGNAL("triggered()"), self.dockWidget.toggle)
+        self.action.triggered.connect( self.dockWidget.toggle )
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
@@ -88,7 +88,7 @@ class LcMain(QObject):
         # Create action 
         self.helpAction = QAction( QIcon(":/plugins/layercombinations/about.png"), u"Help", self.iface.mainWindow())
         # connect the action 
-        QObject.connect(self.helpAction, SIGNAL("triggered()"), self.showHelp)
+        self.helpAction.triggered.connect( self.showHelp )
         # Add menu item
         self.iface.addPluginToMenu(u"&Layer Combinations", self.helpAction)
 

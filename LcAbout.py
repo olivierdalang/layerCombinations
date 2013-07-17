@@ -42,7 +42,7 @@ class LcAbout(QDialog):
 
         cls = QPushButton('Close')
 
-        QObject.connect(cls,SIGNAL("pressed()"),self.accept)
+        cls.pressed.connect(self.accept)
 
         lay = QVBoxLayout()
         lay.addWidget(txt)

@@ -56,11 +56,10 @@ class LcCompPalette(QDockWidget):
         self.layout.addWidget(self.combBox,0,0)
 
         #Connect the main UI elements
-        QObject.connect(self.combBox, SIGNAL("activated(QString)"), self.combBoxActivated)
-        QObject.connect(self.manager, SIGNAL("combinationsListChanged(QString)"), self.combinationsListChanged )
+        self.combBox.activated[str].connect(self.combBoxActivated)
+        self.manager.combinationsListChanged[str].connect(self.combinationsListChanged)
 
-
-        QObject.connect( self.composer, SIGNAL('selectedItemChanged(QgsComposerItem*)'), self.selectedItemChanged )
+        self.composer.selectedItemChanged[QgsComposerItem].connect(self.selectedItemChanged)
         #QObject.connect( qgsComposerView.composition(), SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
 
         self.combinationsListChanged(self.manager.NONE_NAME)
