@@ -55,7 +55,7 @@ class LcCanvasBase():
 
         self.combBox.currentIndexChanged[str].connect(self.nameEdt.setText)
 
-        self.combBox.activated[str].connect(self.manager.applyCombination)
+        self.combBox.activated[str].connect(self.comboBoxActivated)
         self.manager.combinationsListChanged[str].connect(self.combinationsListChanged)
 
 
