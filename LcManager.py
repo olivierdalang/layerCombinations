@@ -319,10 +319,11 @@ class LcManager(QObject):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups')[0]
     def _loadCombinations(self):
         combinationsNames = []
-        combEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations')
-        for combEntry in combEntries:
-            combName = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+combEntry+'/Name')[0]
-            combinationsNames.append( combName )
+        if QgsProject is not None:
+            combEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations')
+            for combEntry in combEntries:
+                combName = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+combEntry+'/Name')[0]
+                combinationsNames.append( combName )
         return combinationsNames
 
     def _nameToken(self, inputName):

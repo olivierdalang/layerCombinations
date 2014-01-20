@@ -26,7 +26,7 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-class LcCompPalette(QDockWidget):
+class LcComposerPalette(QDockWidget):
     """
     This palette is the interfae for saving and restoring layers visibilities.
 

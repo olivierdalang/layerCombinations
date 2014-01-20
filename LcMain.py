@@ -23,17 +23,21 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
+import qgis.utils
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
 from LcManager import LcManager
-from LcCompPalette import LcCompPalette
-from LcPalette import LcPalette
+from LcComposerPalette import LcComposerPalette
+from LcCanvasDockWidget import LcCanvasDockWidget
+from LcCanvasToolBar import LcCanvasToolBar
 from LcAbout import LcAbout
 
 
 class LcMain(QObject):
 
+    DOCKWIDGET = 0
+    TOOLBAR = 1
 
     def __init__(self, iface):
         QObject.__init__(self)
@@ -44,8 +48,13 @@ class LcMain(QObject):
         # this will hold the combinations list
         self.manager = LcManager(self.iface)
 
+
         # Create the dock widget and keep reference
-        self.dockWidget = LcPalette(self.manager)
+        if QSettings().value('plugins/LayerCombinations/WidgetType',self.TOOLBAR) == self.TOOLBAR:
+            self.widget = LcCanvasToolBar(self.manager)
+        else:
+            self.widget = LcCanvasDockWidget(self.manager)
+
         # This will hold the composers dock widgets
         self.compDockWidgets = []
 
@@ -69,31 +78,42 @@ class LcMain(QObject):
         Creates the GUI for the main window
         """
 
-        # Create the action that will toggle the plugin panel
-        self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Show/hide the Layer Combinations panel", self.iface.mainWindow())
-        self.action.triggered.connect( self.dockWidget.toggle )
-
-        # Add toolbar button and menu item
-        self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu("&Layer Combinations", self.action)
-
-        # Add the plugin panel to the mainWindow
-        #restored = self.iface.mainWindow().restoreDockWidget(self.dockWidget)
-        #if not restored:
-        self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
-
-
-        self.initHelp()
-
-
-    def initHelp(self):
-        # Help Action
-        # Create action 
+        # Create help action 
         self.helpAction = QAction( QIcon(":/plugins/layercombinations/about.png"), u"Help", self.iface.mainWindow())
         # connect the action 
         self.helpAction.triggered.connect( self.showHelp )
         # Add menu item
         self.iface.addPluginToMenu(u"&Layer Combinations", self.helpAction)
+
+        # Create the action that allows to change the widget type
+        self.changeWidgetAction = QAction("Change widget type", self.iface.mainWindow())
+        self.changeWidgetAction.triggered.connect( self.changeWidget )
+        self.iface.addPluginToMenu(u"&Layer Combinations", self.changeWidgetAction)
+
+        # Create the action that will toggle the plugin panel
+        self.action = QAction(QIcon(":/plugins/layercombinations/icon.png"), "Show/hide the Layer Combinations widgets", self.iface.mainWindow())
+        self.action.triggered.connect( self.widget.toggle )
+        # Add toolbar button and menu item
+        self.iface.addToolBarIcon(self.action)
+        self.iface.addPluginToMenu(u"&Layer Combinations", self.action)
+
+
+        # Add the widget to the mainWindow
+        self.widget.addToiFace(self.iface)
+
+
+    def changeWidget(self):
+        """
+        Reloads the plugin after changing the settings
+        """
+
+        if QSettings().value('plugins/LayerCombinations/WidgetType',self.TOOLBAR) == self.TOOLBAR:
+            QSettings().setValue('plugins/LayerCombinations/WidgetType',self.DOCKWIDGET)
+        else:
+            QSettings().setValue('plugins/LayerCombinations/WidgetType',self.TOOLBAR)
+
+        qgis.utils.reloadPlugin("layerCombinations")
+
 
     def showHelp(self):
         # Simply show the help window
@@ -104,7 +124,7 @@ class LcMain(QObject):
         Creates the GUI for the given Composer Main Window
         """
 
-        dockWidgetForComposer = LcCompPalette(self.manager, qgsComposerView)
+        dockWidgetForComposer = LcComposerPalette(self.manager, qgsComposerView)
 
         self.compDockWidgets.append(dockWidgetForComposer)
 
@@ -113,20 +133,23 @@ class LcMain(QObject):
 
 
     def unload(self):
-        self.iface.mainWindow().removeDockWidget(self.dockWidget)
-        self.iface.removePluginMenu("&Layer Combinations",self.action)
+        self.widget.removeFromiFace(self.iface)
+
+        self.iface.removePluginMenu(u"&Layer Combinations", self.helpAction)
+        self.iface.removePluginMenu(u"&Layer Combinations",self.changeWidgetAction)
+        self.iface.removePluginMenu(u"&Layer Combinations",self.action)
+
         self.iface.removeToolBarIcon(self.action)
 
 
         #For all the composers, remove the layer combitionations dock window !
-        for compDockWidget in self.compDockWidgets:
-            # This throws
-            # RuntimeError: underlying C/C++ object has been deleted
-            # So I disable it... Not sure wheter the plugin is well unloaded... But it shouldn't matter too much....
-            #compDockWidget.close()
-            #compDockWidget.setParent(None)
-            pass
+        if self.iface is not None:
+            for compDockWidget in self.compDockWidgets:
+                try:
+                    # This throws a "RuntimeError: underlying C/C++ object has been deleted" when one quits QGIS... Not sure why ? But it does not matter...
+                    compDockWidget.setParent(None)
+                except RuntimeError:
+                    continue
         self.compDockWidgets=[]
 
 
-        self.iface.removePluginMenu(u"&Layer Combinations", self.helpAction)

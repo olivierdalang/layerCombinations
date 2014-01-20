@@ -26,7 +26,7 @@ from qgis.core import *
 
 # create the dialog for zoom to point
 
-class LcPalette(QDockWidget):
+class LcCanvasBase():
     """
     This palette is the interface for saving and restoring layers visibilities.
 
@@ -34,34 +34,19 @@ class LcPalette(QDockWidget):
 
 
     def __init__(self, manager):
-        QDockWidget.__init__(self, "Layer combinations")
 
         #Keep reference of QGis' instances
         self.manager = manager
 
-
-        #Setup the DockWidget
-        mainWidget = QWidget()
-        self.layout = QGridLayout()
-        self.layout.setColumnStretch( 0, 1 )
-        self.layout.setRowStretch( 3, 1 )
-        mainWidget.setLayout(self.layout)
-        self.setWidget(mainWidget)
-
         #Create the main UI elements
         self.combBox = QComboBox()
         self.nameEdt = QLineEdit("New layer combination")
-        self.saveBtn = QPushButton("Save")
-        self.deleBtn = QPushButton("Delete")
+        self.saveBtn = QToolButton()
+        self.saveBtn.setText("Save")
+        self.deleBtn = QToolButton()
+        self.deleBtn.setText("Delete")
         self.foldChk = QCheckBox("Apply folding")
         self.foldChk.setChecked( True )
-
-        #Layout the main UI elements
-        self.layout.addWidget(self.combBox,0,0)
-        self.layout.addWidget(self.deleBtn,0,1)
-        self.layout.addWidget(self.nameEdt,1,0)
-        self.layout.addWidget(self.saveBtn,1,1)
-        self.layout.addWidget(self.foldChk,2,0,1,2)
 
         #Connect the main UI elements
         self.saveBtn.pressed.connect(self.saveCombination)
@@ -74,12 +59,12 @@ class LcPalette(QDockWidget):
         self.manager.combinationsListChanged[str].connect(self.combinationsListChanged)
 
 
-
     def toggle(self):
         if self.isVisible():
             self.hide()
         else:
             self.show()
+
 
     def comboBoxActivated(self, name):
         self.manager.applyCombination( name, self.foldChk.isChecked() )
@@ -134,7 +119,15 @@ class LcPalette(QDockWidget):
         """
         Removes the current combination list and saves the list
         """
-        self.manager.deleteCombination( self.combBox.currentText() )
+        confirmBox = QMessageBox()
+        confirmBox.setIcon(QMessageBox.Warning)
+        confirmBox.setText("Are you sure you want to delete the combination '%s' ?" % self.combBox.currentText())
+        confirmBox.setInformativeText("There is no way to restore this change. Maps that use this combination will keep that layer set as locked.")
+        confirmBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        confirmBox.setDefaultButton(QMessageBox.Cancel)
+
+        if confirmBox.exec_() == QMessageBox.Ok:
+            self.manager.deleteCombination( self.combBox.currentText() )
 
 
 

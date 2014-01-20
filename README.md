@@ -7,6 +7,8 @@
 LayerCombinations is a QGis plugin to store/restore layer visbilities and folding.
 These visibilities combinations can then be applied dynamically to maps items.
 
+A video demonstration of an older version is available here : https://vimeo.com/70446444
+
 
 ## Usage ##
 
@@ -22,6 +24,8 @@ Note that the layer order in the map corresponds to the layer order when the com
 When you add new groups/layers, they are considered to be hidden and folded by existing combinations.
 
 If you want to avoid folding to be saved and applied, uncheck the "apply folding" checkbox.
+
+You can switch between displaying the user interface in a docking pane or a toolbar by using the "change widget type" action from the plugin menu.
 
 
 ## Feedback / bugs ##
@@ -60,6 +64,9 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - "- NONE -" combination now also stores folding
     - /!\ compatibility is broken with 0.7.
     - /!\ now only works with QGIS 2.0 and higher
+- 2013-06-08 - Version 1.0 :
+    - THE PLUGIN IS NO MORE FLAGGED AS EXPERIMENTAL (which does not mean that you can sue me in case of problems)
+    - the UI can be displayed in a toolbar rather than a QDockWindow to save space (using change widget type from the plugin menu)
 
 
 
