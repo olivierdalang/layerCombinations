@@ -7,33 +7,39 @@ import hashlib
 
 class LcManager(QObject):
     """
-        THIS MAY BE OBSOLETE ?
-
-                    <VisibleLayers type="QStringList">
-                        <value>A20130316224139550</value>
-                        <value>B20130316224214241</value>
-                        <value>C20130316224244007</value>
-                    </VisibleLayers>
-                    <ExpandedGroups type="QStringList"/>
-                    <ExpandedLayers type="QStringList">
-                        <value>A20130316224139550</value>
-                    </ExpandedLayers>
-                    <Name type="QString">6876</Name>
         This class manages the saving, the loading, the deleting and the applying of the layer combinations.
 
         It stores the following settings in the project's file :
-        - Active (QString) : the name of the last active combination (will be restored on file open)
-        - <Combinations>
-        -   <{combination_name}>
-        -       <VisibleLayers> (QStringList): list of visible layers ids in the combination {combination_name}
-        -       <ExpandedGroups> (QStringList): list of expanded layers ids in the combination {combination_name}
-        -       <ExpandedLayers> (QStringList): list of expanded groups ids in the combination {combination_name}
-        -   </{combination_name}>
-        -   ...
-        - </Combinations>
-        - <Assignations>
-        -   <{mapItemUUID}> (QString): the name of the assigned combination
-        - </Assignations>
+
+        <LayerCombinations>
+            <Active type="QString">{combination_name}</Active>  :  the name of the last active combination (will be restored on file open)
+            <Combinations>
+                <Combination-{combination_name_hash}>
+                    <VisibleLayers type="QStringList">          :  list of visible layers ids in the combination {combination_name}
+                        <value>{layer_name}</value>
+                        <value>{layer_name}</value>
+                        ...
+                    </VisibleLayers>
+                    <ExpandedLayers type="QStringList">          :  list of expanded layers ids in the combination {combination_name}
+                        <value>{layer_name}</value>
+                        <value>{layer_name}</value>
+                        ...
+                    </ExpandedLayers>
+                    <ExpandedGroups type="QStringList">          :  list of expanded groups ids in the combination {combination_name}
+                        <value>{group_name}</value>
+                        <value>{group_name}</value>
+                        ...
+                    </ExpandedGroups>
+                    <Name type="QString">{combination_name}</Name>
+                </Combination-{combination_name_hash}>
+                ...
+            </Combinations>
+            <Assignations>                                      :  the associations between a map composer and a combination
+                <Assignation-{composermap_uuid} type="QString">{combination_name}</Assignation-{composermap_uuid}>
+                <Assignation-{composermap_uuid} type="QString">{combination_name}</Assignation-{composermap_uuid}>
+                ...
+            </Assignations>
+        </LayerCombinations>
 
         It emits the combinationsListChanged(Qstring) signal whenever the combination list changed.
         The QString sent is the name of the added layer (if a layer was added) or the NONE_NAME if a layer was removed.
@@ -61,7 +67,7 @@ class LcManager(QObject):
 
     def loadCombinations(self):
         """
-        Loads all the combinations from the file, applies the saved Active combination and emits the combinationsListChanged signal.
+        Loads all the combinations from the file and emits the combinationsListChanged signal.
         """
 
         #QgsMessageLog.logMessage('Manager : loading combinations','LayerCombinations')
@@ -70,8 +76,10 @@ class LcManager(QObject):
 
         self.combinationsList.sort()
 
-        #Actually, it's better not to apply the default combination, since it can cause a project to open in a different state than how it was when it was closed...
+        #We could apply the default combination upon project loading...
+        #...but this is disabled since it can cause a project to open in a different state than how it was when it was closed.
         #self.applyCombination( self._loadActive() ) 
+
         self.combinationsListChanged.emit( self._loadActive() )
 
     def saveCombination(self, name, saveFolding = True):
@@ -79,13 +87,7 @@ class LcManager(QObject):
         Saves the all the visible layers in the combination, and if the combination is new, changes the combinations list
         """
 
-        #QgsMessageLog.logMessage('Manager : adding combination '+name,'LayerCombinations')
-
-        if not self.nameIsValid(name):
-            return
-
-        #We compute the actual combination by looping through all the layers, and storing all the visible layers' name
-        layers = self.iface.legendInterface().layers()
+        assert(self.nameIsValid(name)) #just to be sure...
 
         if saveFolding:
             self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedLayersIds(), self._getExpandedGroupsIds())

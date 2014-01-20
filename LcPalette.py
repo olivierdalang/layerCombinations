@@ -28,7 +28,7 @@ from qgis.core import *
 
 class LcPalette(QDockWidget):
     """
-    This palette is the interfae for saving and restoring layers visibilities.
+    This palette is the interface for saving and restoring layers visibilities.
 
     """
 

@@ -78,7 +78,10 @@ class LcMain(QObject):
         self.iface.addPluginToMenu("&Layer Combinations", self.action)
 
         # Add the plugin panel to the mainWindow
-        self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
+        #restored = self.iface.mainWindow().restoreDockWidget(self.dockWidget)
+        #if not restored:
+        self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget)
+
 
         self.initHelp()
 
