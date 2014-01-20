@@ -39,11 +39,13 @@ class LcCanvasToolBar(QToolBar, LcCanvasBase):
         LcCanvasBase.__init__(self, manager)
 
         self.nameEdt.setMaximumWidth(100)
+        self.deleBtn.setFixedWidth(50)
+        self.saveBtn.setFixedWidth(50)
 
         #Layout the main UI elements
         self.addWidget(self.combBox)
-        self.addWidget(self.deleBtn)
         self.addWidget(self.nameEdt)
+        self.addWidget(self.deleBtn)
         self.addWidget(self.saveBtn)
         self.addWidget(self.foldChk)
 

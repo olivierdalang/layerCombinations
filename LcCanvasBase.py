@@ -45,7 +45,10 @@ class LcCanvasBase():
         self.saveBtn.setText("Save")
         self.deleBtn = QToolButton()
         self.deleBtn.setText("Delete")
-        self.foldChk = QCheckBox("Apply folding")
+        self.foldChk = QCheckBox()
+        #self.foldChk = QToolButton() # we can also display is as a button
+        #self.foldChk.setCheckable( True )
+        self.foldChk.setText("Fold")
         self.foldChk.setChecked( True )
 
         #Connect the main UI elements
@@ -102,11 +105,12 @@ class LcCanvasBase():
             self.deleBtn.setEnabled(False)
         else:
             self.saveBtn.setEnabled(True)
-            self.deleBtn.setEnabled(True)
             if self.manager.nameIsNew(name):
                 self.saveBtn.setText('Save')
+                self.deleBtn.setEnabled(False)
             else:
                 self.saveBtn.setText('Update')
+                self.deleBtn.setEnabled(True)
 
     def saveCombination(self):
         """
