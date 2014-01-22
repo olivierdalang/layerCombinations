@@ -38,7 +38,8 @@ class LcCanvasToolBar(QToolBar, LcCanvasBase):
         QToolBar.__init__(self, "Layer combinations")
         LcCanvasBase.__init__(self, manager)
 
-        self.nameEdt.setMaximumWidth(100)
+        self.combBox.setFixedWidth(120)
+        self.nameEdt.setFixedWidth(120)
         self.deleBtn.setFixedWidth(50)
         self.saveBtn.setFixedWidth(50)
 

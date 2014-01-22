@@ -40,8 +40,7 @@ class LcCanvasBase():
 
         #Create the main UI elements
         self.combBox = QComboBox()
-        self.combBox.setMinimumContentsLength(10)
-        self.nameEdt = QLineEdit("New layer combination")
+        self.nameEdt = QLineEdit("New combination")
         self.saveBtn = QToolButton()
         self.saveBtn.setText("Save")
         self.deleBtn = QToolButton()
