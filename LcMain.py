@@ -50,7 +50,7 @@ class LcMain(QObject):
 
 
         # Create the dock widget and keep reference
-        if QSettings().value('plugins/LayerCombinations/WidgetType',self.TOOLBAR) == self.TOOLBAR:
+        if QSettings().value('plugins/LayerCombinations/WidgetType',self.DOCKWIDGET) == self.TOOLBAR:
             self.widget = LcCanvasToolBar(self.manager)
         else:
             self.widget = LcCanvasDockWidget(self.manager)

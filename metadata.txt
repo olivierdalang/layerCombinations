@@ -12,7 +12,7 @@
 name=Layer Combinations
 qgisMinimumVersion=2.0
 description=Store and restore layer visibilities in "combinations" which can then be applied to composer maps.
-version=1.0
+version=1.01
 author=Olivier Dalang
 email=olivier.dalang@gmail.com
 
