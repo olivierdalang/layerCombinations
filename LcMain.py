@@ -63,6 +63,7 @@ class LcMain(QObject):
 
         # we have to reload the list when a project is opened/closed
         self.iface.projectRead.connect( self.manager.loadCombinations ) #we have to reload the list when a project is opened/closed
+        self.iface.newProjectCreated.connect( self.manager.loadCombinations ) #we have to reload the list when a project is opened/closed
 
         #and we start by reloading the list
         self.manager.loadCombinations()
