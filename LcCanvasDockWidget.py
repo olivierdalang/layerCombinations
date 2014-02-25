@@ -44,6 +44,9 @@ class LcCanvasDockWidget(QDockWidget, LcCanvasBase):
         self.layout.setRowStretch( 3, 1 )
         mainWidget.setLayout(self.layout)
         self.setWidget(mainWidget)
+        
+        self.deleBtn.setFixedWidth(50)
+        self.saveBtn.setFixedWidth(50)
 
         #Layout the main UI elements
         self.layout.addWidget(self.combBox,0,0)
