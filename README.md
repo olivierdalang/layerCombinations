@@ -67,6 +67,8 @@ Or send me some feedback at : olivier.dalang@gmail.com
 - 2013-06-08 - Version 1.0 :
     - THE PLUGIN IS NO MORE FLAGGED AS EXPERIMENTAL (which does not mean that you can sue me in case of problems)
     - the UI can be displayed in a toolbar rather than a QDockWindow to save space (using change widget type from the plugin menu)
+- 2013-06-08 - Version 1.1 :
+    - Small bug fixes
 
 
 
