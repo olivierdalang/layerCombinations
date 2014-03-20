@@ -120,16 +120,16 @@ class LcMain(QObject):
         # Simply show the help window
         self.aboutWindow = LcAbout()  
 
-    def initComposerGui(self, qgsComposerView):
+    def initComposerGui(self, qgsComposerZoom):
         """
         Creates the GUI for the given Composer Main Window
         """
 
-        dockWidgetForComposer = LcComposerPalette(self.manager, qgsComposerView)
+        dockWidgetForComposer = LcComposerPalette(self.manager, qgsComposerZoom)
 
         self.compDockWidgets.append(dockWidgetForComposer)
 
-        qgsComposerView.composerWindow().addDockWidget(Qt.RightDockWidgetArea, dockWidgetForComposer )
+        qgsComposerZoom.composerWindow().addDockWidget(Qt.RightDockWidgetArea, dockWidgetForComposer )
 
 
 

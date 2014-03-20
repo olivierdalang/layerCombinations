@@ -53,7 +53,12 @@ class LcCanvasDockWidget(QDockWidget, LcCanvasBase):
         self.layout.addWidget(self.deleBtn,0,1)
         self.layout.addWidget(self.nameEdt,1,0)
         self.layout.addWidget(self.saveBtn,1,1)
-        self.layout.addWidget(self.foldChk,2,0,1,2)
+
+        sublayout = QHBoxLayout()
+        sublayout.addWidget(self.foldChk)
+        sublayout.addWidget(self.snapChk)
+        sublayout.addWidget(self.zoomChk)
+        self.layout.addLayout(sublayout,2,0,1,2)
 
     def addToiFace(self, iface):
         iface.addDockWidget(Qt.LeftDockWidgetArea, self)

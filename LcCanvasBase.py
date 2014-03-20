@@ -46,10 +46,14 @@ class LcCanvasBase():
         self.deleBtn = QToolButton()
         self.deleBtn.setText("Delete")
         self.foldChk = QCheckBox()
-        #self.foldChk = QToolButton() # we can also display is as a button
-        #self.foldChk.setCheckable( True )
         self.foldChk.setText("Fold")
         self.foldChk.setChecked( True )
+        self.snapChk = QCheckBox()
+        self.snapChk.setText("Snap")
+        self.snapChk.setChecked( True )
+        self.zoomChk = QCheckBox()
+        self.zoomChk.setText("Zoom")
+        self.zoomChk.setChecked( False )
 
         #Connect the main UI elements
         self.saveBtn.pressed.connect(self.saveCombination)
@@ -70,7 +74,7 @@ class LcCanvasBase():
 
 
     def comboBoxActivated(self, name):
-        self.manager.applyCombination( name, self.foldChk.isChecked() )
+        self.manager.applyCombination( name, self.foldChk.isChecked(), self.snapChk.isChecked(), self.zoomChk.isChecked() )
 
 
     def combinationsListChanged(self, name):
@@ -117,7 +121,7 @@ class LcCanvasBase():
         Saves the current combination.
         If it's new, adds it to the comboBox and saves the combinations list.
         """
-        self.manager.saveCombination( self.nameEdt.text(), self.foldChk.isChecked() )
+        self.manager.saveCombination( self.nameEdt.text(), self.foldChk.isChecked(), self.snapChk.isChecked(), self.zoomChk.isChecked() )
 
     def deleteCombination(self):
         """

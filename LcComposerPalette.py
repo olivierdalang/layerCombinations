@@ -60,7 +60,7 @@ class LcComposerPalette(QDockWidget):
         self.manager.combinationsListChanged[str].connect(self.combinationsListChanged)
 
         self.composer.selectedItemChanged[QgsComposerItem].connect(self.selectedItemChanged)
-        #QObject.connect( qgsComposerView.composition(), SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
+        #QObject.connect( qgsComposerZoom.composition(), SIGNAL('selectedItemChanged(QgsComposerItem*)'), dockWidgetForComposer.selectedItemChanged )
 
         self.combinationsListChanged(self.manager.NONE_NAME)
 

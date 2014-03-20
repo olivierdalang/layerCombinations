@@ -49,6 +49,8 @@ class LcCanvasToolBar(QToolBar, LcCanvasBase):
         self.addWidget(self.deleBtn)
         self.addWidget(self.saveBtn)
         self.addWidget(self.foldChk)
+        self.addWidget(self.snapChk)
+        self.addWidget(self.zoomChk)
 
     def addToiFace(self, iface):
         iface.mainWindow().addToolBar(Qt.TopToolBarArea,self)

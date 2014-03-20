@@ -82,17 +82,20 @@ class LcManager(QObject):
 
         self.combinationsListChanged.emit( self._loadActive() )
 
-    def saveCombination(self, name, saveFolding = True):
+    def saveCombination(self, name, saveFolding = True, saveSnapping = True, saveExtents = False):
         """
         Saves the all the visible layers in the combination, and if the combination is new, changes the combinations list
         """
 
         assert(self.nameIsValid(name)) #just to be sure...
 
-        if saveFolding:
-            self._saveCombination(name, self._getVisibleLayersIds(), self._getExpandedLayersIds(), self._getExpandedGroupsIds())
-        else:
-            self._saveCombination(name, self._getVisibleLayersIds())
+        self._saveCombination(  name,
+                                self._getVisibleLayersIds(), 
+                                self._getExpandedLayersIds() if saveFolding else None, 
+                                self._getExpandedGroupsIds() if saveFolding else None, 
+                                self._getSnappingLayersIds() if saveSnapping else None, 
+                                self._getExtents() if saveExtents else None
+                             )
 
         self.loadCombinationToMaps(name)
 
@@ -123,7 +126,7 @@ class LcManager(QObject):
 #        
 #        #TODO  : We also enable/disable the "update" button depending if the current visibilties/folding matches or not the selected combination.
 
-    def applyCombination(self, name, withFolding = True):
+    def applyCombination(self, name, withFolding=True, withSnapping=True, withExtents=False):
         """
         Applies a combination by setting the layers to visible if they are in the selected layer combination and hiding it if absent from the layer combination
         """
@@ -136,8 +139,13 @@ class LcManager(QObject):
             #We apply the NONE combination if the name is not valid...
             if self.previousVisibleLayerList is not None:
                 self._applyVisibleLayersIds(self.previousVisibleLayerList)
-                self._applyExpandedLayersIds(self.previousExpandedLayersList)
-                self._applyExpandedGroupsIds(self.previousExpandedGroupsList)
+                if withFolding:
+                    self._applyExpandedLayersIds(self.previousExpandedLayersList)
+                    self._applyExpandedGroupsIds(self.previousExpandedGroupsList)
+                if withSnapping:
+                    self._applySnappingLayersIds(self.previousSnappingOptionsList)
+                if withExtents:
+                    self._applyExtents(self.previousExtents)
 
                 #Workaround : we don't have a signal for userChangedVisibility/Folding
                 self.previousVisibleLayerList = None 
@@ -156,6 +164,8 @@ class LcManager(QObject):
             self.previousVisibleLayerList = self._getVisibleLayersIds()
             self.previousExpandedLayersList = self._getExpandedLayersIds()
             self.previousExpandedGroupsList = self._getExpandedGroupsIds()
+            self.previousSnappingOptionsList = self._getSnappingLayersIds()
+            self.previousExtents = self._getExtents()
         #/Workaround
 
 
@@ -167,6 +177,10 @@ class LcManager(QObject):
         if withFolding:
             self._applyExpandedLayersIds(self._loadCombinationLayerFolding(name))
             self._applyExpandedGroupsIds(self._loadCombinationGroupFolding(name))
+        if withSnapping:
+            self._applySnappingLayersIds(self._loadCombinationSnappingOptions(name))
+        if withExtents:
+            self._applyExtents(self._loadCombinationExtents(name))
 
         #But repaint the canvas once at the end.
         self.iface.mapCanvas().freeze( False )
@@ -241,8 +255,6 @@ class LcManager(QObject):
         for layer in layers:
             if self.iface.legendInterface().isLayerExpanded( layer ):
                 expandedLayerIds.append( layer.id() )  #id() is a QSTRING
-            else:
-                pass
         return expandedLayerIds
     def _getExpandedGroupsIds(self):
         expandedGroupsIds = []
@@ -252,8 +264,6 @@ class LcManager(QObject):
             if self.iface.legendInterface().isGroupExpanded( i ): # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
                 #expandedGroupsIds.append( QString(str(i)) )  #id() is a QSTRING
                 expandedGroupsIds.append( group )  #id() is a QSTRING
-            else:
-                pass
             i+=1
         return expandedGroupsIds
     def _applyVisibleLayersIds(self, visibleLayersIds):
@@ -290,6 +300,39 @@ class LcManager(QObject):
             except ValueError:
                 self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
             i+=1
+    def _applyExtents(self, extents):
+        try:
+            rect = QgsRectangle(float(extents[0]),float(extents[1]),float(extents[2]),float(extents[3]))
+            self.iface.mapCanvas().setExtent(rect)
+        except IndexError, e:
+            #in case no extent was existing, we don't do anything
+            pass
+        
+    def _getSnappingLayersIds(self):
+        snappingLayersIds = []
+        layers = self.iface.legendInterface().layers()
+        for layer in layers:
+            if QgsProject.instance().snapSettingsForLayer(layer.id())[1]:
+                snappingLayersIds.append(layer.id())
+        return snappingLayersIds
+    def _getExtents(self):
+        rect = self.iface.mapCanvas().extent()
+        return [str(rect.xMinimum()),str(rect.yMinimum()),str(rect.xMaximum()),str(rect.yMaximum())]
+    def _applySnappingLayersIds(self, snappingLayersIds):
+
+        # We loop through all the layers in the project
+        layers = QgsMapLayerRegistry.instance().mapLayers()
+        for key in layers:
+            # And for each layer, we set it's visibility, depending if it was in the combination
+            options = QgsProject.instance().snapSettingsForLayer( layers[key].id() )
+            if key in snappingLayersIds:
+                QgsProject.instance().setSnapSettingsForLayer( layers[key].id(),True,options[2],options[3],options[4],options[5])
+                self.iface.legendInterface().setLayerExpanded( layers[key], True )
+            else:
+                QgsProject.instance().setSnapSettingsForLayer( layers[key].id(),False,options[2],options[3],options[4],options[5])
+
+
+            
 
     #These funtions actually do the saving and loading in the project's files
     def _deleteForMap(self, mapId):
@@ -302,13 +345,17 @@ class LcManager(QObject):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
-    def _saveCombination(self, name, visibleLayerList, folderLayerList=None, foldedGroupsList=None):
+    def _saveCombination(self, name, visibleLayerList, foldedLayerList=None, foldedGroupsList=None, snappingOptionsList=None, extents=None):
         QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Name',name)
         QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/VisibleLayers',visibleLayerList)
-        if folderLayerList is not None:
-            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers',folderLayerList)
+        if foldedLayerList is not None:
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers',foldedLayerList)
         if foldedGroupsList is not None:
             QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups',foldedGroupsList)
+        if snappingOptionsList is not None:
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions',snappingOptionsList)
+        if extents is not None:
+            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Extents',extents)
     def _deleteCombination(self,name):
         QgsProject.instance().removeEntry('LayerCombinations','Combinations/'+self._nameToken(name))
     def _loadCombination(self, name):
@@ -317,6 +364,10 @@ class LcManager(QObject):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers')[0]
     def _loadCombinationGroupFolding(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups')[0]
+    def _loadCombinationSnappingOptions(self, name):
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions')[0]
+    def _loadCombinationExtents(self, name):
+        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Extents')[0]
     def _loadCombinations(self):
         combinationsNames = []
         if QgsProject is not None:
