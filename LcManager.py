@@ -268,6 +268,16 @@ class LcManager(QObject):
                 expandedGroupsIds.append( group )  #id() is a QSTRING
             i+=1
         return expandedGroupsIds
+    def _getSnappingLayersIds(self):
+        snappingLayersIds = []
+        layers = self.iface.legendInterface().layers()
+        for layer in layers:
+            if QgsProject.instance().snapSettingsForLayer(layer.id())[1]:
+                snappingLayersIds.append(layer.id())
+        return snappingLayersIds
+    def _getExtents(self):
+        rect = self.iface.mapCanvas().extent()
+        return [str(rect.xMinimum()),str(rect.yMinimum()),str(rect.xMaximum()),str(rect.yMaximum())]
     
     def _applyVisibleLayersIds(self, visibleLayersIds):
 
@@ -300,24 +310,6 @@ class LcManager(QObject):
             except ValueError:
                 self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
             i+=1
-    def _applyExtents(self, extents):
-        if not extents:
-            #in case extents is [], we ignore it
-            QgsMessageLog.logMessage('Extends was not set for this combination','LayerCombinations')
-            return
-
-        rect = QgsRectangle(float(extents[0]),float(extents[1]),float(extents[2]),float(extents[3]))
-        self.iface.mapCanvas().setExtent(rect)
-    def _getSnappingLayersIds(self):
-        snappingLayersIds = []
-        layers = self.iface.legendInterface().layers()
-        for layer in layers:
-            if QgsProject.instance().snapSettingsForLayer(layer.id())[1]:
-                snappingLayersIds.append(layer.id())
-        return snappingLayersIds
-    def _getExtents(self):
-        rect = self.iface.mapCanvas().extent()
-        return [str(rect.xMinimum()),str(rect.yMinimum()),str(rect.xMaximum()),str(rect.yMaximum())]
     def _applySnappingLayersIds(self, snappingLayersIds):
         # We loop through all the layers in the project
 
@@ -335,7 +327,15 @@ class LcManager(QObject):
        
         QgsProject.instance().blockSignals(False)
         QgsProject.instance().snapSettingsChanged.emit() #update the gui
+    def _applyExtents(self, extents):
+        if not extents:
+            #in case extents is [], we ignore it
+            QgsMessageLog.logMessage('Extends was not set for this combination','LayerCombinations')
+            return
 
+        rect = QgsRectangle(float(extents[0]),float(extents[1]),float(extents[2]),float(extents[3]))
+        self.iface.mapCanvas().setExtent(rect)
+    
 
 
             
