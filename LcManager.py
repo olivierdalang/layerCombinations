@@ -269,12 +269,12 @@ class LcManager(QObject):
             i+=1
         return expandedGroupsIds
     def _getSnappingLayersIds(self):
-        snappingLayersIds = []
+        snappingLayersOptions = []
         layers = self.iface.legendInterface().layers()
         for layer in layers:
-            if QgsProject.instance().snapSettingsForLayer(layer.id())[1]:
-                snappingLayersIds.append(layer.id())
-        return snappingLayersIds
+            options = QgsProject.instance().snapSettingsForLayer(layer.id())
+            snappingLayersOptions.append( {'layerid': layer.id(), 'enabled': options[1], 'snapType': options[2], 'unitType': options[3], 'tolerance': options[4], 'avoidInt': options[5]} )
+        return snappingLayersOptions
     def _getExtents(self):
         rect = self.iface.mapCanvas().extent()
         return [str(rect.xMinimum()),str(rect.yMinimum()),str(rect.xMaximum()),str(rect.yMaximum())]
@@ -312,19 +312,10 @@ class LcManager(QObject):
             i+=1
     def _applySnappingLayersIds(self, snappingLayersIds):
         # We loop through all the layers in the project
-
         QgsProject.instance().blockSignals(True) #we don't want to refresh the snapping UI
-
         layers = self.iface.legendInterface().layers()
-        for layer in layers:
-            # And for each layer, we set it's visibility, depending if it was in the combination
-            options = QgsProject.instance().snapSettingsForLayer( layer.id() )
-            if layer.id() in snappingLayersIds:
-                QgsProject.instance().setSnapSettingsForLayer( layer.id(),True,options[2],options[3],options[4],options[5])
-                self.iface.legendInterface().setLayerExpanded( layer, True )
-            else:
-                QgsProject.instance().setSnapSettingsForLayer( layer.id(),False,options[2],options[3],options[4],options[5])
-       
+        for snpOpts in snappingLayersIds:
+            QgsProject.instance().setSnapSettingsForLayer( snpOpts['layerid'],int(snpOpts['enabled']),int(snpOpts['snapType']),int(snpOpts['unitType']),float(snpOpts['tolerance']),int(snpOpts['avoidInt']))
         QgsProject.instance().blockSignals(False)
         QgsProject.instance().snapSettingsChanged.emit() #update the gui
     def _applyExtents(self, extents):
@@ -359,7 +350,10 @@ class LcManager(QObject):
         if foldedGroupsList is not None:
             QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups',foldedGroupsList)
         if snappingLayersList is not None:
-            QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingLayers',snappingLayersList)
+            for i,snapOptions in enumerate(snappingLayersList):
+                for key,val in snapOptions.iteritems():
+                    QgsMessageLog.logMessage('writing to SnappingOptions/'+str(i)+'/'+key)
+                    QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+self._snapOptToken(i)+'/'+key,val)
         if extents is not None:
             QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Extents',extents)
     def _deleteCombination(self,name):
@@ -371,7 +365,16 @@ class LcManager(QObject):
     def _loadCombinationGroupFolding(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups')[0]
     def _loadCombinationSnappingLayers(self, name):
-        return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingLayers')[0]
+        #snappingOptions = QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions')[0]
+        snapsOptions = []
+        snapEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/')
+        for snapEntry in snapEntries:
+            snapOption = {}
+            for opt in QgsProject.instance().entryList('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+snapEntry):
+                snapOption[opt] = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+snapEntry+'/'+opt)[0]
+            snapsOptions.append( snapOption )
+        QApplication.processEvents()
+        return snapsOptions
     def _loadCombinationExtents(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Extents')[0]
     def _loadCombinations(self):
@@ -389,5 +392,8 @@ class LcManager(QObject):
     def _uuidToken(self, inputAssignation):
         #We have to remove the {} from the uuid so it can be stored as XML tag.
         return 'Assignation-'+inputAssignation[1:-1]
+    def _snapOptToken(self, inputOptionId):
+        return 'SnapOpts-%05i' % int(inputOptionId)
+
 
 
