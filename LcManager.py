@@ -93,7 +93,7 @@ class LcManager(QObject):
                                 self._getVisibleLayersIds(), 
                                 self._getExpandedLayersIds() if saveFolding else None, 
                                 self._getExpandedGroupsIds() if saveFolding else None, 
-                                self._getSnappingLayersIds() if saveSnapping else None, 
+                                self._getSnappingOptions() if saveSnapping else None, 
                                 self._getExtents() if saveExtents else None
                              )
 
@@ -143,7 +143,7 @@ class LcManager(QObject):
                     self._applyExpandedLayersIds(self.previousExpandedLayersList)
                     self._applyExpandedGroupsIds(self.previousExpandedGroupsList)
                 if withSnapping:
-                    self._applySnappingLayersIds(self.previousSnappingLayersList)
+                    self._applySnappingOptions(self.previousSnappingOptions)
                 if withExtents:
                     self._applyExtents(self.previousExtents)
 
@@ -164,7 +164,7 @@ class LcManager(QObject):
             self.previousVisibleLayerList = self._getVisibleLayersIds()
             self.previousExpandedLayersList = self._getExpandedLayersIds()
             self.previousExpandedGroupsList = self._getExpandedGroupsIds()
-            self.previousSnappingLayersList = self._getSnappingLayersIds()
+            self.previousSnappingOptions = self._getSnappingOptions()
             self.previousExtents = self._getExtents()
         #/Workaround
 
@@ -178,7 +178,7 @@ class LcManager(QObject):
             self._applyExpandedLayersIds(self._loadCombinationLayerFolding(name))
             self._applyExpandedGroupsIds(self._loadCombinationGroupFolding(name))
         if withSnapping:
-            self._applySnappingLayersIds(self._loadCombinationSnappingLayers(name))
+            self._applySnappingOptions(self._loadCombinationSnappingOptions(name))
         if withExtents:
             self._applyExtents(self._loadCombinationExtents(name))
 
@@ -268,7 +268,7 @@ class LcManager(QObject):
                 expandedGroupsIds.append( group )  #id() is a QSTRING
             i+=1
         return expandedGroupsIds
-    def _getSnappingLayersIds(self):
+    def _getSnappingOptions(self):
         snappingLayersOptions = []
         layers = self.iface.legendInterface().layers()
         for layer in layers:
@@ -310,16 +310,16 @@ class LcManager(QObject):
             except ValueError:
                 self.iface.legendInterface().setGroupExpanded( i, False ) # /!\ THIS SEEMS TO BE BUGGY IN 1.8 !!! Does not work with subgroups !
             i+=1
-    def _applySnappingLayersIds(self, snappingLayersIds):
+    def _applySnappingOptions(self, snappingsOptions):
         # We loop through all the layers in the project
         QgsProject.instance().blockSignals(True) #we don't want to refresh the snapping UI
         layers = self.iface.legendInterface().layers()
-        for snpOpts in snappingLayersIds:
+        for snpOpts in snappingsOptions:
             QgsProject.instance().setSnapSettingsForLayer( snpOpts['layerid'],int(snpOpts['enabled']),int(snpOpts['snapType']),int(snpOpts['unitType']),float(snpOpts['tolerance']),int(snpOpts['avoidInt']))
         QgsProject.instance().blockSignals(False)
         QgsProject.instance().snapSettingsChanged.emit() #update the gui
     def _applyExtents(self, extents):
-        if not extents:
+        if extents:
             #in case extents is [], we ignore it
             QgsMessageLog.logMessage('Extends was not set for this combination','LayerCombinations')
             return
@@ -342,15 +342,15 @@ class LcManager(QObject):
         QgsProject.instance().writeEntry('LayerCombinations','Active',name)
     def _loadActive(self):
         return QgsProject.instance().readEntry('LayerCombinations','Active')[0]
-    def _saveCombination(self, name, visibleLayerList, foldedLayerList=None, foldedGroupsList=None, snappingLayersList=None, extents=None):
+    def _saveCombination(self, name, visibleLayerList, foldedLayerList=None, foldedGroupsList=None, snappingsOptions=None, extents=None):
         QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Name',name)
         QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/VisibleLayers',visibleLayerList)
         if foldedLayerList is not None:
             QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers',foldedLayerList)
         if foldedGroupsList is not None:
             QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups',foldedGroupsList)
-        if snappingLayersList is not None:
-            for i,snapOptions in enumerate(snappingLayersList):
+        if snappingsOptions is not None:
+            for i,snapOptions in enumerate(snappingsOptions):
                 for key,val in snapOptions.iteritems():
                     QgsMessageLog.logMessage('writing to SnappingOptions/'+str(i)+'/'+key)
                     QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+self._snapOptToken(i)+'/'+key,val)
@@ -364,7 +364,7 @@ class LcManager(QObject):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedLayers')[0]
     def _loadCombinationGroupFolding(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/ExpandedGroups')[0]
-    def _loadCombinationSnappingLayers(self, name):
+    def _loadCombinationSnappingOptions(self, name):
         #snappingOptions = QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions')[0]
         snapsOptions = []
         snapEntries = QgsProject.instance().subkeyList('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/')
