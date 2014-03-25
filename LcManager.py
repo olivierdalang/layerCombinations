@@ -321,7 +321,7 @@ class LcManager(QObject):
     def _applyExtents(self, extents):
         if extents:
             #in case extents is [], we ignore it
-            QgsMessageLog.logMessage('Extends was not set for this combination','LayerCombinations')
+            QgsMessageLog.logMessage('Zoom was not set for this combination','LayerCombinations')
             return
 
         rect = QgsRectangle(float(extents[0]),float(extents[1]),float(extents[2]),float(extents[3]))
@@ -352,7 +352,6 @@ class LcManager(QObject):
         if snappingsOptions is not None:
             for i,snapOptions in enumerate(snappingsOptions):
                 for key,val in snapOptions.iteritems():
-                    QgsMessageLog.logMessage('writing to SnappingOptions/'+str(i)+'/'+key)
                     QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+self._snapOptToken(i)+'/'+key,val)
         if extents is not None:
             QgsProject.instance().writeEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Extents',extents)
@@ -373,7 +372,6 @@ class LcManager(QObject):
             for opt in QgsProject.instance().entryList('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+snapEntry):
                 snapOption[opt] = QgsProject.instance().readEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/SnappingOptions/'+snapEntry+'/'+opt)[0]
             snapsOptions.append( snapOption )
-        QApplication.processEvents()
         return snapsOptions
     def _loadCombinationExtents(self, name):
         return QgsProject.instance().readListEntry('LayerCombinations','Combinations/'+self._nameToken(name)+'/Extents')[0]
