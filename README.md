@@ -4,7 +4,7 @@
 
 ## Description ##
 
-LayerCombinations is a QGis plugin to store/restore layer visbilities, folding, snapping and the map's extents.
+LayerCombinations is a QGis plugin to store/restore layer visbilities, folding, snapping and map extents.
 The layer visibilities combinations can then be applied dynamically to maps items.
 
 A video demonstration of an older version is available here : https://vimeo.com/70446444
@@ -16,16 +16,16 @@ To save a layer combination, enter a name and press "save".
 To restore a layer combination, choose it from the drop down list.
 To delete a layer combination, choose it from the drop down list and press "delete".
 To update a layer combination, choose it from the drop down list, make your changes, and press "update".
-To restore the previous (aka current) layer combination, select the "- NONE -" item.
+To restore the previous state, select the "- NONE -" item.
 
 Once there is at least one combination, you can select a map in the composer and assign a combination to it using the new docking pane at the bottom-right. When the combination is updated, the map is also dynamically updated.
 Note that the layer order in the map corresponds to the layer order when the combination is saved. One has to update a combination to take into account a modified layer order.
 
-When you add new groups/layers, they are considered to be hidden and folded by existing combinations.
+If you want to avoid folding, snapping or map extent to be saved and applied, uncheck the corresponding checkbox. These checkboxes have no effect on the print composer.
 
-If you want to avoid folding, snapping or map extent to be saved and applied, uncheck the corresponding checkbox.
+When you add new groups/layers, they are considered to be hidden and folded by existing combinations, snap settings however won't be modified by combinations.
 
-You can switch between displaying the user interface in a docking pane or a toolbar by using the "change widget type" action from the plugin menu.
+You can switch between displaying the user interface in a comfortable docking pane or as a compact toolbar by using the "change widget type" action from the plugin menu.
 
 
 ## Feedback / bugs ##
@@ -70,7 +70,7 @@ Or send me some feedback at : olivier.dalang@gmail.com
 - 2013-06-08 - Version 1.1 :
     - Small bug fixes
 - 2014-03-20 - Version 1.2 :
-    - Added snapping and zoom
+    - Added snapping and zoom ! Yay !
 
 
 

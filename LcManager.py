@@ -186,7 +186,7 @@ class LcManager(QObject):
 
         #But repaint the canvas once at the end.
         self.iface.mapCanvas().freeze( False )
-        self.iface.mapCanvas().setDirty( True )
+        #self.iface.mapCanvas().setDirty( True )
         self.iface.mapCanvas().refresh()
 
     def applyCombinationToMap(self, name, mapItem):
