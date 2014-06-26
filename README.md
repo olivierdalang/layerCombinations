@@ -71,6 +71,8 @@ Or send me some feedback at : olivier.dalang@gmail.com
     - Small bug fixes
 - 2014-03-20 - Version 1.2 :
     - Added snapping and zoom ! Yay !
+- 2014-06-26 - Version 1.2.1 :
+    - Fixed a (stupid) bug which made zoom unusable
 
 
 

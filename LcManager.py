@@ -319,7 +319,7 @@ class LcManager(QObject):
         QgsProject.instance().blockSignals(False)
         QgsProject.instance().snapSettingsChanged.emit() #update the gui
     def _applyExtents(self, extents):
-        if extents:
+        if not extents:
             #in case extents is [], we ignore it
             QgsMessageLog.logMessage('Zoom was not set for this combination','LayerCombinations')
             return
