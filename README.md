@@ -1,3 +1,5 @@
+# __THIS PLUGIN IS DEPRECATED SINCE SAME FUNCTIONALITY HAS BEEN ADDED TO QGIS CORE__
+
 # LayerCombinations #
 
 **Disclaimer** : use at your own risk, the plugin is in developpement. In case of problem, open your QGis file in a plain text editor, and remove everything between &lt;LayerCombinations&gt; and &lt;/LayerCombinations&gt;.
